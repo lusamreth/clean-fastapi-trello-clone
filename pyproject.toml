@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "mini-jrello-server"
+version = "0.1.0"
+description = ""
+authors = ["lusamreth <somrethoverkill@gmail.com>"]
+readme = "README.md"
+packages = [{include = "mini_jrello_server"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
