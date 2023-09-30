@@ -4,12 +4,19 @@ version = "0.1.0"
 description = ""
 authors = ["lusamreth <somrethoverkill@gmail.com>"]
 readme = "README.md"
-packages = [{include = "mini_jrello_server"}]
+packages = [{include = "src"},{ include = "services", from="src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+uvicorn = {extras = ["standard"], version = "^0.22.0"}
+fastapi = "^0.99.0"
+sqlalchemy = "^2.0.18"
+mysqlclient = "^2.2.0"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+start = "src.app:main"
