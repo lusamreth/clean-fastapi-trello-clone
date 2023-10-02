@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from repository.adapters.base_sql_repo import BaseRepo
 from repository.model.user import UserSchema
 
+# RepoDTO =
+
 
 class UserRepo(BaseRepository[UserSchema]):
     @abstractmethod
