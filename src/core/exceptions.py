@@ -47,8 +47,6 @@ class DuplicatedError(CoreException):
 
 
 class AuthError(CoreException):
-    # def __init__(self, **args) -> None:
-    #     super().__init__(status.HTTP_403_FORBIDDEN, **args)
     def injectStatusCode(self):
         self.status_code = status.HTTP_403_FORBIDDEN
 
