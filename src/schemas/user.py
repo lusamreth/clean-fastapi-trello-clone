@@ -5,6 +5,11 @@ class FetchUserRequest(BaseModel):
     userId: str
 
 
+class LoginInfo(BaseModel):
+    email: str
+    password: str
+
+
 class RegistrationInfo(BaseModel):
     username: str
     email: str
