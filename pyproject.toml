@@ -12,6 +12,8 @@ uvicorn = {extras = ["standard"], version = "^0.22.0"}
 fastapi = "^0.99.0"
 sqlalchemy = "^2.0.18"
 mysqlclient = "^2.2.0"
+bcrypt = "^4.0.1"
+pyjwt = "^2.8.0"
 
 
 [build-system]
