@@ -41,11 +41,9 @@ class BaseRepo(BaseRepository[T]):
 
     def get(self, id: str):
         return
-        pass
 
     def list(self, id: str):
         return
-        pass
 
     def remove(self, id):
         with self.session_factory() as session:
