@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from core.exceptions import AuthError
+from core.security import getPasswordHash
 
 
 class User(BaseModel):
@@ -31,7 +32,7 @@ class User(BaseModel):
             raise AuthError("Password is not matched!")
 
         return cls(
-            password=password1,
+            password=getPasswordHash(password1),
             email=email,
             username=username,
         )
