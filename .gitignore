@@ -1,0 +1,10 @@
+.env 
+**/*.cpython
+
+__pycache__/
+*.py[cod]
+*.pyc
+bin
+
+**/__pycache__/
+*$py.class
