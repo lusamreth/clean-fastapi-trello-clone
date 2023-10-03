@@ -36,7 +36,7 @@ service = UserService(repo=impl)
 async def register(
     userInfo: RegistrationInfo,
 ):
-    result = service.register_user(userInfo)
+    result = service.registerUser(userInfo)
     return result
 
 
@@ -44,5 +44,5 @@ async def register(
 async def login(
     userInfo: LoginInfo,
 ):
-    result = service.login_user(userInfo)
+    result = service.loginUser(userInfo)
     return result
