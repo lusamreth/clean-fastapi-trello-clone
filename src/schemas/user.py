@@ -5,6 +5,18 @@ class FetchUserRequest(BaseModel):
     userId: str
 
 
+class UserLoginResponse(BaseModel):
+    tokenType: str
+    accessToken: str
+    expireIn: str
+    duration: float
+
+
+class GenericHttpResponse(BaseModel):
+    message: str
+    detail: dict
+
+
 class LoginInfo(BaseModel):
     email: str
     password: str
