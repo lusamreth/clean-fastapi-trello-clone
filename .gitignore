@@ -8,3 +8,7 @@ bin
 
 **/__pycache__/
 *$py.class
+
+src/**/__pycache__/**
+**/__pycache__/
+__pycache__
