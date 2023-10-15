@@ -1,14 +1,22 @@
 import jwt
 import bcrypt
+import base64
+
+from typing import TypeVar
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel
 from starlette.requests import Request
+from domains.auth import (
+    AccessTokenPayload,
+    RefreshTokenPayload,
+    TokenEncryptor,
+    TokenProto,
+)
+from uuid import uuid4
 from .exceptions import AuthError
 import time
 from configs.settings import getSettings
-
-
-def createAccessToken():
-    pass
+from Cryptodome.Cipher import AES
 
 
 def getPasswordHash(plainPass: str) -> str:
@@ -24,59 +32,61 @@ def comparePassHash(plainPass: str, hashed: str) -> bool:
     return bcrypt.checkpw(passBytes, hashedBytes)
 
 
-JWT_SECRET = "abci0wi20-1922%77362/.22./$*01*233++1"
-# JWT_ALGORITHM = "RSA256"
-JWT_ALGORITHM = "HS256"
-
-
-class AccessTokenPayload:
-    pass
+TK = TypeVar("TK")
 
 
 tokenSettings = getSettings()
 
 
-class AccessToken:
+class AccessToken(TokenProto):
     expire: float
 
     def __init__(
         self,
-        payload: dict,
+        user_id: str,
         expire_in=900,
         algorithm=tokenSettings.JWT_ALGORITHM,
     ):
-        self.payload = payload
+        self.payload = AccessTokenPayload(user_id=user_id)
         self.algo = algorithm
         self.expire = expire_in
         self.scope = ""
 
     def __call__(self):
         accessTokenPayload = {
-            **self.payload,
+            **self.payload.model_dump(),
             "exp": time.time() + self.expire,
-            "iss": "reth.server.com",
+            "iss": tokenSettings.JWT_ISSUER,
+            # "iss": "reth.server.com",
         }
 
         if self.expire > 1800:
-            raise Exception(
-                "AccessToken cannot be longer than half an hour!"
-            )
+            raise Exception("AccessToken cannot be longer than half an hour!")
 
         token = jwt.encode(
             accessTokenPayload,
             algorithm=self.algo,
-            key=tokenSettings.JWT_SECRET,
+            key=tokenSettings.JWT_ACCESS_TOKEN_SECRET,
         )
         return token
 
+    @staticmethod
+    def decode(token: str):
+        decoded = decodeJWT(token, tokenSettings.JWT_ACCESS_TOKEN_SECRET)
+        if decoded["iss"] != tokenSettings.JWT_ISSUER:
+            raise Exception("Invalid issuer domain")
+        return decoded
 
-class RefreshToken:
-    expire: float
 
+class RefreshToken(TokenProto):
     def __init__(
-        self, payload: dict, expire_in, algorithm=JWT_ALGORITHM
+        self,
+        user_id,
+        expire_in=24 * 3600 * 7,
+        algorithm=tokenSettings.JWT_ALGORITHM,
     ):
-        self.payload = payload
+        token_claim_id = uuid4()
+        self.payload = RefreshTokenPayload(user_id=user_id, jti=str(token_claim_id))
         self.algo = algorithm
         self.expire = expire_in
         self.scope = ""
@@ -86,32 +96,43 @@ class RefreshToken:
             pass
 
         refreshTokenPayload = {
-            **self.payload,
-            "expire_in": time.time() + self.expire,
-            "iss": "reth.server.com",
+            **self.payload.dict(),
+            "exp": time.time() + self.expire,
+            "iss": tokenSettings.JWT_ISSUER,
         }
 
         token = jwt.encode(
             refreshTokenPayload,
             algorithm=self.algo,
-            key=JWT_SECRET,
+            key=tokenSettings.JWT_REFRESH_TOKEN_SECRET,
         )
+
         return token
 
+    @staticmethod
+    def decode(token: str) -> RefreshTokenPayload:
+        decoded = decodeJWT(token, tokenSettings.JWT_REFRESH_TOKEN_SECRET)
 
-def decodeJWT(token: str) -> dict:
+        if decoded["user_id"] is None:
+            raise Exception("Invalid refresh token!")
+
+        if decoded["jti"] is None:
+            raise Exception("Refresh Token must come with valid jti!")
+
+        return RefreshTokenPayload(user_id=decoded["user_id"], jti=decoded["jti"])
+
+
+def decodeJWT(token: str, secret) -> dict:
     try:
         decoded_token = jwt.decode(
-            token, JWT_SECRET, algorithms=[JWT_ALGORITHM]
+            token,
+            key=secret,
+            algorithms=[tokenSettings.JWT_ALGORITHM],
         )
+        return decoded_token if decoded_token["exp"] >= time.time() else {}
 
-        return (
-            decoded_token
-            if decoded_token["expires"] >= time.time()
-            else {}
-        )
-    except Exception:
-        return {}
+    except Exception as e:
+        raise e
 
 
 class JWTBearer(HTTPBearer):
@@ -120,28 +141,51 @@ class JWTBearer(HTTPBearer):
 
     async def __call__(self, request: Request):
         credentials = await super(JWTBearer, self).__call__(request)
-
         if credentials:
             if not credentials.scheme == "Bearer":
                 raise AuthError(
                     message="Invalid authentication scheme.",
                 )
-            if not self.verify_jwt(credentials.credentials):
+
+            decodedPayload = self.verify_jwt(credentials.credentials)
+            if isinstance(decodedPayload, str):
                 raise AuthError(
-                    message="Invalid token or expired token.",
+                    message="Invalid token or expired token : {}".format(
+                        decodedPayload
+                    ),
                 )
-            return credentials.credentials
+
+            return decodedPayload
         else:
             raise AuthError(message="Invalid authorization code.")
 
-    def verify_jwt(self, jwt_token: str) -> bool:
-        isTokenValid: bool = False
-
+    def verify_jwt(self, jwt_token: str) -> dict | str:
         try:
-            payload = decodeJWT(jwt_token)
-        except Exception:
-            payload = None
-        if payload:
-            isTokenValid = True
+            return AccessToken.decode(jwt_token)
+        except Exception as e:
+            return str(e)
 
-        return isTokenValid
+
+security_settings = getSettings()
+
+
+class TokenCipher(TokenEncryptor):
+    def __init__(self):
+        self.nonce = None
+        self.refreshCipher()
+
+    def encrypt(self, plainTextToken: str):
+        cypherText, tag = self.cipher.encrypt_and_digest(plainTextToken.encode())
+        self.refreshCipher()
+        return base64.encodebytes(cypherText)
+
+    def decrypt(self, encryptedTxt: str):
+        plainText = self.cipher.decrypt(encryptedTxt.encode())
+        self.refreshCipher()
+        return plainText.decode()
+
+    def refreshCipher(self):
+        self.cipher = AES.new(
+            security_settings.AES_KEY.encode(), AES.MODE_EAX, nonce=self.nonce
+        )
+        self.nonce = self.cipher.nonce
