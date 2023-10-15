@@ -23,7 +23,7 @@ class BaseReadOnlyRepository(
     ABC,
 ):
     @abstractmethod
-    async def get(self, id: str) -> Optional[T]:
+    def get(self, id: str) -> Optional[T]:
         ...
 
     @abstractmethod
