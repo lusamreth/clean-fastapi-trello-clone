@@ -1,8 +1,9 @@
 from contextlib import AbstractContextManager
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import DeclarativeBase, Session
 from sqlalchemy.exc import IntegrityError
 from core.base_repo import BaseRepository
 from typing import Callable, Generic, TypeVar
+import inspect
 
 T = TypeVar("T")
 
@@ -14,9 +15,11 @@ class BaseRepo(BaseRepository[T]):
             ..., AbstractContextManager[Session]
         ],
         model,
+        primary_key_identifier="id",
     ) -> None:
         self.session_factory = session_factory
         self.model = model
+        self.identifier = primary_key_identifier
 
     def add(self, **schema):
         query = self.model(**schema)
@@ -37,13 +40,20 @@ class BaseRepo(BaseRepository[T]):
             session.query(self.model).filter(
                 self.model.id == id
             ).update(patches.dict())
+
             session.commit()
 
-    def get(self, id: str):
-        return
+    def get(self, id: str) -> T | None:
+        with self.session_factory() as session:
+            res = (
+                session.query(self.model)
+                .filter(self.model.__dict__[self.identifier] == id)
+                .one()
+            )
+            return res
 
     def list(self, id: str):
-        return
+        raise NotImplemented()
 
     def remove(self, id):
         with self.session_factory() as session:
