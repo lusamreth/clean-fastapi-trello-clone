@@ -1,28 +1,23 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import uvicorn
 from core.exceptions import (
     CoreException,
     ErrorDetail,
     ErrorLink,
     ErrorResponse,
 )
-from .api.v1.router import userRouter, cabinetRouter
-
-import uvicorn
+from .api.v1.router import userRouter, cabinetRouter, authRouter
 
 app = FastAPI()
 
 
 @app.exception_handler(CoreException)
-async def core_exception_handler(
-    request: Request, exc: CoreException
-):
+async def core_exception_handler(request: Request, exc: CoreException):
     error_link = exc.links
     if error_link is None:
-        error_link = ErrorLink(
-            about="Not available", error_type="Undocumented"
-        )
+        error_link = ErrorLink(about="Not available", error_type="Undocumented")
 
     return JSONResponse(
         status_code=exc.status_code,
@@ -39,6 +34,7 @@ async def core_exception_handler(
 
 app.include_router(userRouter)
 app.include_router(cabinetRouter)
+app.include_router(authRouter)
 
 # We define authorizations for middleware components
 app.add_middleware(
@@ -56,6 +52,4 @@ def root():
 
 
 def main():
-    uvicorn.run(
-        "src.app:app", host="0.0.0.0", port=8000, reload=True
-    )
+    uvicorn.run("src.app:app", host="0.0.0.0", port=8000, reload=True)
