@@ -1,7 +1,7 @@
 #
 import os
 from functools import lru_cache
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 @lru_cache
@@ -23,7 +23,11 @@ class ApplicationSettings(BaseSettings):
     DEBUG_MODE: bool
     # security
     JWT_ALGORITHM: str = "HS256"
-    JWT_SECRET: str
+    JWT_ACCESS_TOKEN_SECRET: str
+    JWT_REFRESH_TOKEN_SECRET: str
+    JWT_ISSUER: str
+
+    AES_KEY: str
 
     class Config:
         env_file = getEnvFilename()
