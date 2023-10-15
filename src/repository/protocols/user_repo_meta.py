@@ -1,20 +1,21 @@
-from core.base_repo import BaseRepository, ContextManagerRepository
+from core.base_repo import BaseRepository
 from abc import ABC, abstractmethod
 
-from repository.adapters.base_sql_repo import BaseRepo
 from repository.model.user import UserSchema
-
-# RepoDTO =
+from domains.user import User
 
 
 class UserRepo(BaseRepository[UserSchema]):
     @abstractmethod
-    def get_by_username(self, username: str):
+    def get_by_username(self, username: str) -> User | None:
         pass
 
     @abstractmethod
-    def get_by_email(self, email: str):
+    def get_by_email(self, email: str) -> User | None:
         pass
 
-    # @abstractmethod
-    # def reset_password(self,oldpassword:str , )
+    @abstractmethod
+    def db_to_entity(
+        self, user_repo_data: UserSchema | None
+    ) -> User | None:
+        pass
