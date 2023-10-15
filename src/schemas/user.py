@@ -8,21 +8,15 @@ class FetchUserRequest(BaseModel):
 class UserLoginResponse(BaseModel):
     tokenType: str
     accessToken: str
-    expireIn: str
-    duration: float
+    refreshToken: str
 
 
-class GenericHttpResponse(BaseModel):
-    message: str
-    detail: dict
-
-
-class LoginInfo(BaseModel):
+class LoginInfoInput(BaseModel):
     email: str
     password: str
 
 
-class RegistrationInfo(BaseModel):
+class RegistrationInfoInput(BaseModel):
     username: str
     email: str
     password1: str
@@ -37,6 +31,32 @@ class RegistrationInfo(BaseModel):
                 "username": "hide",
             }
         }
+
+
+class UserProfile(BaseModel):
+    userId: str
+    username: str
+    email: str
+
+    class Config:
+        schema_extra = {
+            "userId": "abc123",
+            "username": "hidey",
+            "email": "hidey@gmail.com",
+        }
+
+
+class UpdatePasswordHintRequest(BaseModel):
+    recovery_email: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "recovery_email": "hide@hide.com",
+            }
+        }
+
+    pass
 
 
 class UpdatePasswordRequest(BaseModel):
