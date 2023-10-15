@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Path, Query, Depends
-from database.main import Database
+from fastapi import APIRouter, Header, Path, Query, Depends
 
-from repository.adapters.base_sql_repo import BaseRepo
-from repository.model.user import UserSchema
-from ....schemas.user import LoginInfo, RegistrationInfo
-from services.user_services import UserService
-from repository.adapters.user_repo import UserRepo, UserRepoImpl
+from core.exceptions import AuthError, CoreException
+from core.utils.exception_handler import exceptionHandler
+
+from ....schemas.user import LoginInfoInput, RegistrationInfoInput
+from core.security import JWTBearer
+from ..provider import getUserService
 
 
 # PRIMARY TASKS :
@@ -20,29 +20,40 @@ from repository.adapters.user_repo import UserRepo, UserRepoImpl
 # explore fastapi features such as security modules(fastapi.security) and
 # more useful utils
 
-# from ....services.user_services import c
-from typing import Annotated
+# from ....userServices.user_services import c
 
 prefix = "/user"
 userRouter = APIRouter(prefix=prefix, tags=["User"])
-db_container = Database()
 
 
-impl = UserRepoImpl(db_container.getSession())
-service = UserService(repo=impl)
+bearerSec = JWTBearer()
 
 
 @userRouter.post("/register")
 async def register(
-    userInfo: RegistrationInfo,
+    userInfo: RegistrationInfoInput,
+    userService=Depends(getUserService),
 ):
-    result = service.registerUser(userInfo)
+    result = userService.registerUser(userInfo)
     return result
 
 
 @userRouter.post("/login")
+@exceptionHandler(AuthError)
 async def login(
-    userInfo: LoginInfo,
+    userInfo: LoginInfoInput, userService=Depends(getUserService)
 ):
-    result = service.loginUser(userInfo)
+    result = userService.loginUser(userInfo)
+    return result
+
+
+# dependencies=[Depends(bearerSec)]
+@userRouter.get("/me")
+@exceptionHandler(CoreException)
+async def profile(
+    token=Depends(bearerSec), userService=Depends(getUserService)
+):
+    result = userService.getProfile(
+        token["user_id"], scope=["email"]
+    )
     return result

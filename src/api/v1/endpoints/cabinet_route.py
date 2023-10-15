@@ -18,8 +18,6 @@ async def get_cabinet_root():
 async def find_cabinet(
     cabinet_id: Annotated[str, Path(title="bruh")]
 ):
-    # res = await fetchBoard.execute(cabinet_id)
-    print("res", 100)
     return "henlo"
 
 
