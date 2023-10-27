@@ -17,6 +17,7 @@ pyjwt = "^2.8.0"
 pydantic = {extras = ["email"], version = "^2.4.2"}
 pydantic-settings = "^2.0.3"
 pycryptodomex = "^3.19.0"
+oslash = "^0.6.3"
 
 
 [build-system]

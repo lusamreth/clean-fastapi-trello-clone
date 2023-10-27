@@ -316,6 +316,21 @@ files = [
 ]
 
 [[package]]
+name = "oslash"
+version = "0.6.3"
+description = "OSlash (Ø) for Python 3.8+"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "OSlash-0.6.3-py3-none-any.whl", hash = "sha256:89b978443b7db3ac2666106bdc3680add3c886a6d8fcdd02fd062af86d29494f"},
+    {file = "OSlash-0.6.3.tar.gz", hash = "sha256:868aeb58a656f2ed3b73d9dd6abe387b20b74fc9413d3e8653b615b15bf728f3"},
+]
+
+[package.dependencies]
+typing-extensions = "*"
+
+[[package]]
 name = "pycryptodomex"
 version = "3.19.0"
 description = "Cryptographic library for Python"
@@ -916,4 +931,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "f04f6e53aa57b633e29b4ce28107449d0f38e250eab8d464abad1d463ea3ffb6"
+content-hash = "7679c46bcc450659114b51597fc288b2dc852ccbef13c2136710739581faf814"
