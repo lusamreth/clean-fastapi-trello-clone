@@ -5,8 +5,7 @@ from core.exceptions import AuthError, CoreException
 from repository.adapters.auth_repo import AuthRepoImpl
 
 
-prefix = "/auth"
-authRouter = APIRouter(prefix=prefix, tags=["Auth"])
+authRouter = APIRouter(tags=["Auth"])
 
 
 @authRouter.post("/refresh")

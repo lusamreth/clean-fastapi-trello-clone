@@ -1,17 +1,23 @@
-from fastapi import APIRouter, Path, Query
-
-# from ....services.assemble import createBoard, fetchBoard
+from fastapi import APIRouter, Depends, Path, Query
 from typing import Annotated
+from api.v1.provider import getCabinetService
 
-prefix = "/cabinet"
-cabinetRouter = APIRouter(prefix=prefix, tags=["Cabinet"])
+from schemas.cabinet import CreateCabinet
+from services.cabinet_services import CabinetService
+
+cabinetRouter = APIRouter(tags=["Cabinet"])
 
 
-@cabinetRouter.get("/")
-async def get_cabinet_root():
+@cabinetRouter.post("/cabinet")
+async def get_cabinet_root(
+    cabInfo: CreateCabinet,
+    cabService: CabinetService=Depends(getCabinetService),
+):
+    result = cabService.createCabinet(cabInfo);
     # await createBoard.execute({"bruh": 100})
-    print("res", 100)
-    return "henlo"
+    return result
+
+
 
 
 @cabinetRouter.get("/{cabinet_id}")
