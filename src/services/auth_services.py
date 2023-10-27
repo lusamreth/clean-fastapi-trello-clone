@@ -3,11 +3,7 @@ from core.exceptions import AuthError
 from core.utils.token import generateTokenSets
 from domains.auth import TokenCredential, TokenEncryptor
 from repository.protocols.auth_repo_meta import AuthRepo
-from core.security import RefreshToken, TokenCipher, decodeJWT, AccessToken
-from Cryptodome.Cipher import AES
-from configs.settings import getSettings
-
-security_settings = getSettings()
+from core.security import RefreshToken, TokenCipher
 
 
 class AuthService:

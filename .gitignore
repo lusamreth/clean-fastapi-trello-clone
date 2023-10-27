@@ -1,14 +1,12 @@
 .env 
 **/*.cpython
 
-__pycache__/
-*.py[cod]
-*.pyc
-bin
-
 **/__pycache__/
 *$py.class
 
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 src/**/__pycache__/**
-**/__pycache__/
-__pycache__
