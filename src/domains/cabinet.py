@@ -1,22 +1,52 @@
+from datetime import datetime, time
+from typing import Optional
 from pydantic import BaseModel, create_model
 from enum import Enum
-
+from uuid import uuid4
 
 class Cabinet(BaseModel):
-    cabinet_id: str
+    cabinetId: str
     name: str
-    board_refs: list[str]
-    createdOn: str
+    author : str
+    boardRefs: list[str]
+    createdOn: float
 
+    @classmethod 
+    def create(cls,name:str,author:str) -> "Cabinet":
+        tz = datetime.now().timestamp()
+        cId = str(uuid4())
+        return cls(
+                name=name,
+                author=author,
+                cabinetId=cId,
+                boardRefs=[],
+                createdOn=tz
+
+            )
+
+    def appendBoardRef(self,ref:str):
+        self.boardRefs.append(ref)
 
 class Board(BaseModel):
-    board_id: str
-    card_refs: list[str]
-    topic: str
-    description: str
+    boardId: str
     name: str
-    createdOn: str
+    cardRefs: list[str]
+    topic: str
+    description: Optional[str]
+    createdOn: float
 
+    @classmethod 
+    def create(cls,name:str,topic:str) -> "Board":
+        bId = str(uuid4())
+        tz = datetime.now().timestamp()
+        return cls(
+            boardId= bId,
+            name=name,
+            topic=topic,
+            description=None,
+            cardRefs=[],
+            createdOn=tz
+        )
 
 class Card(BaseModel):
     card_id: str

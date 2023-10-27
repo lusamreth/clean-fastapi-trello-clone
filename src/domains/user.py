@@ -97,7 +97,3 @@ class User(BaseModel):
     def getSecretPassword(cls) -> str:
         return cls.password.get_secret_value()
 
-        # @classmethod
-        # def filterProfileData(cls) -> UserProfile:
-        #     return UserProfile()
-        pass
