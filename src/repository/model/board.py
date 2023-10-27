@@ -17,9 +17,7 @@ class Author(Base):
     __tablename__ = "author"
     id: Mapped[str] = mapped_column(primary_key=True, default=None)
     name: Mapped[str] = mapped_column(String(30))
-    board_ref: Mapped[list["Cabinet"]] = relationship(
-        back_populates="board_ref"
-    )
+    # board_ref: Mapped[list["Cabinet"]] = relationship(back_populates="board_ref")
 
 
 class Cabinet(Base):
@@ -28,9 +26,7 @@ class Cabinet(Base):
     name: Mapped[str] = mapped_column(String(30))
     description: Mapped[str] = mapped_column(String(255))
     author: Mapped["Author"] = relationship(back_populates="author")
-    board: Mapped[list["Board"]] = relationship(
-        back_populates="cards"
-    )
+    board: Mapped[list["Board"]] = relationship(back_populates="cards")
 
 
 class Board(Base):
@@ -41,9 +37,7 @@ class Board(Base):
     cabinet: Mapped["Cabinet"] = relationship(back_populates="board")
     topic: Mapped[str] = mapped_column(String(30))
     description: Mapped[str] = mapped_column(String(255))
-    cards: Mapped[list["Card"]] = relationship(
-        back_populates="board"
-    )
+    cards: Mapped[list["Card"]] = relationship(back_populates="board")
 
 
 class Card(Base):
