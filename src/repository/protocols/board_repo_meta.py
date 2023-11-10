@@ -1,17 +1,33 @@
-from abc import abstractmethod
-from typing import Optional, Protocol
-from pydantic import BaseModel
-from ...domains.cabinet import Board
-from ...core.base_repo import BaseRepository
+from core.base_repo import BaseRepository
+from abc import ABC, abstractmethod
+
+from repository.model.cabinet import BoardSchema
+from domains.board import Board
 
 
-class CreateBoardIn(BaseModel):
-    name: str
-    description: str
-    topic: Optional[str]
+class BoardRepo(BaseRepository[BoardSchema]):
+    # @abstractmethod
+    # def get_all_by_author(self, username: str) -> list[Board] :
+    #     pass
 
-
-class BoardRepo(BaseRepository[Board]):
     @abstractmethod
-    def add(self, detail: CreateBoardIn):
-        raise NotImplementedError()
+    def db_to_entity(self, cabinet_repo_data: BoardSchema | None) -> Board | None:
+        pass
+
+    @abstractmethod
+    def entity_to_db(
+        self, cabinet_id: str, cabinet_repo_data: Board | None, to_dict: bool
+    ) -> BoardSchema | dict | None:
+        pass
+
+    # @abstractmethod
+    # def get_all_by_user_id(self, user_id: str) -> list[Board]:
+    #     pass
+
+    # @abstractmethod
+    # def inject_todolist(self):
+    #     pass
+
+    # @abstractmethod
+    # def add(self, cabinet_id: str, detail: BoardSchema) -> BoardSchema:
+    #     pass
