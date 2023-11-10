@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Header, Path, Query, Depends
 
-from core.exceptions import AuthError, CoreException, DTO2HttpFactory
+from core.exceptions import AuthError, CoreException
 from core.utils.exception_handler import exceptionHandler
 from services.user_services import UserService
 from ....schemas.user import LoginInfoInput, RegistrationInfoInput
 from core.security import JWTBearer
-from ..provider import getUserService
+from ..provider import getUserService, bearerSec
 
 
 # PRIMARY TASKS :
@@ -24,8 +24,6 @@ from ..provider import getUserService
 
 userRouter = APIRouter(tags=["User"])
 
-bearerSec = JWTBearer()
-
 
 @userRouter.post("/register")
 async def register(
@@ -33,7 +31,7 @@ async def register(
     userService: UserService =Depends(getUserService),
 ):
     result = userService.registerUser(userInfo)
-    return result
+    return result.unwrap()
 
 
 @userRouter.post("/login")
@@ -42,16 +40,16 @@ async def login(
     userInfo: LoginInfoInput, userService=Depends(getUserService)
 ):
     result = userService.loginUser(userInfo)
-    return result
+    return result.unwrap()
 
 
 # dependencies=[Depends(bearerSec)]
 @userRouter.get("/me")
 @exceptionHandler(CoreException)
 async def profile(
-        token=Depends(bearerSec), userService : UserService =Depends(getUserService)
+        token=Depends(bearerSec), userService : UserService = Depends(getUserService)
 ):
     result = userService.getProfile(
         token["user_id"], scope=["email"]
     )
-    return result
+    return result.unwrap()

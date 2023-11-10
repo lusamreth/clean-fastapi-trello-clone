@@ -1,30 +1,72 @@
-from fastapi import APIRouter, Depends, Path, Query
+from collections.abc import Callable
+from fastapi import APIRouter, Depends, Path, Query, Response, Request
 from typing import Annotated
-from api.v1.provider import getCabinetService
 
-from schemas.cabinet import CreateCabinet
+from fastapi.routing import APIRoute
+
+from api.v1.provider import getCabinetService, bearerSec
+
+from schemas.cabinet import CreateCabinet, PatchCabinetInput
 from services.cabinet_services import CabinetService
+
 
 cabinetRouter = APIRouter(tags=["Cabinet"])
 
 
-@cabinetRouter.post("/cabinet")
-async def get_cabinet_root(
+@cabinetRouter.post("/")
+async def create_cabinet(
     cabInfo: CreateCabinet,
-    cabService: CabinetService=Depends(getCabinetService),
+    token=Depends(bearerSec),
+    cabService: CabinetService = Depends(getCabinetService),
 ):
-    result = cabService.createCabinet(cabInfo);
-    # await createBoard.execute({"bruh": 100})
-    return result
+    # user_id = "2fa97a0c-f540-4ac6-9cee-6b6a126225bc"
+    user_id = token["user_id"]
+    result = cabService.createCabinet(
+        CreateCabinet(**{**cabInfo.model_dump(), "authorId": user_id})
+    )
+    return result.unwrap()
 
 
-
-
-@cabinetRouter.get("/{cabinet_id}")
-async def find_cabinet(
-    cabinet_id: Annotated[str, Path(title="bruh")]
+@cabinetRouter.get("/many")
+async def fetch_cabinets(
+    token=Depends(bearerSec),
+    cabService: CabinetService = Depends(getCabinetService),
 ):
-    return "henlo"
+    # user_id = "2fa97a0c-f540-4ac6-9cee-6b6a126225bc"
+    user_id = token["user_id"]
+    result = cabService.getAllCabinets(user_id)
+    return result.unwrap()
+
+
+@cabinetRouter.delete("/{cabinet_id}")
+async def delete_cabinets(
+    cabinet_id: str,
+    token=Depends(bearerSec),
+    cabService: CabinetService = Depends(getCabinetService),
+):
+    result = cabService.deleteCabinet(cabinet_id)
+    return result.unwrap()
+
+
+@cabinetRouter.patch("/{cabinet_id}")
+async def update_cabinet(
+    cabinet_id: str,
+    detail: PatchCabinetInput,
+    _token=Depends(bearerSec),
+    cabService: CabinetService = Depends(getCabinetService),
+):
+    result = cabService.updateCabinet(cabinet_id, detail)
+    return result.unwrap()
+
+
+# @cabinetRouter.post("/board/{cabinet_id}")
+# async def pushcard(
+#     cabinet_id :str,
+#     token = Depends(bearerSec),
+#     cabService: CabinetService=Depends(getCabinetService),
+# ):
+#     result = cabService.updateCabinet(cabinet_id);
+#     return result.unwrap()
 
 
 @cabinetRouter.get("/lists")
