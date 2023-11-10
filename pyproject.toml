@@ -18,6 +18,7 @@ pydantic = {extras = ["email"], version = "^2.4.2"}
 pydantic-settings = "^2.0.3"
 pycryptodomex = "^3.19.0"
 oslash = "^0.6.3"
+alembic = "^1.12.1"
 
 
 [build-system]
