@@ -1,4 +1,8 @@
-.env 
+.env
+.env.dev
+.env.prod
+.env.staging
+
 **/*.cpython
 
 **/__pycache__/
@@ -10,3 +14,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 src/**/__pycache__/**
+
+
