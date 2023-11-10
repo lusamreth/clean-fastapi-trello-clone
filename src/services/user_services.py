@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
-from core.generics import Right, ServiceDTO, ServiceResult, err, ok, ErrorTitle
+from core.generics import Right, ServiceDTO, ServiceResult, err, ok,ErrorTitle,AppErrors
 from core.security import TokenCipher
 from core.utils.token import generateTokenSets
 from domains.auth import TokenCredential
@@ -14,8 +14,7 @@ from schemas.user import (
     UserLoginResponse,
     UserProfile,
 )
-
-from core.exceptions import AppErrors, AuthError, ValidationError
+from core.exceptions import AuthError, ValidationError
 from domains.user import User
 
 
