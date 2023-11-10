@@ -28,7 +28,6 @@ def exceptionHandler(exception_classes):
                     title="value_error",
                 )
             except Exception as e:
-                print("eto", e)
                 raise CoreException(
                     status_code=400,
                     message=str(e),
