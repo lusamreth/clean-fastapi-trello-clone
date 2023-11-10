@@ -4,49 +4,41 @@ from pydantic import BaseModel, create_model
 from enum import Enum
 from uuid import uuid4
 
+
+class CabinetPatcher(BaseModel):
+    name: str | None = None
+    # topic: str | None = None
+    description: str | None = None
+
+
 class Cabinet(BaseModel):
     cabinetId: str
     name: str
-    author : str
+    author: str
     boardRefs: list[str]
     createdOn: float
 
-    @classmethod 
-    def create(cls,name:str,author:str) -> "Cabinet":
+    @classmethod
+    def create(cls, name: str, author: str) -> "Cabinet":
         tz = datetime.now().timestamp()
         cId = str(uuid4())
-        return cls(
-                name=name,
-                author=author,
-                cabinetId=cId,
-                boardRefs=[],
-                createdOn=tz
+        return cls(name=name, author=author, cabinetId=cId, boardRefs=[], createdOn=tz)
 
-            )
-
-    def appendBoardRef(self,ref:str):
+    def appendBoardRef(self, ref: str):
+        if self.boardRefs.count(ref) > 0:
+            raise Exception("Cannot append the existing board in the cabinet reference")
         self.boardRefs.append(ref)
 
-class Board(BaseModel):
-    boardId: str
-    name: str
-    cardRefs: list[str]
-    topic: str
-    description: Optional[str]
-    createdOn: float
+    def deleteBoardRef(self, ref: str):
+        if self.boardRefs.count(ref) == 0:
+            raise Exception("Cannot delete non-existing board in the cabinet reference")
+        self.boardRefs.remove(ref)
 
-    @classmethod 
-    def create(cls,name:str,topic:str) -> "Board":
-        bId = str(uuid4())
-        tz = datetime.now().timestamp()
-        return cls(
-            boardId= bId,
-            name=name,
-            topic=topic,
-            description=None,
-            cardRefs=[],
-            createdOn=tz
-        )
+    @classmethod
+    def patchCabinet(cls, old: "Cabinet", partial: CabinetPatcher) -> "Cabinet":
+        patched = partial.model_dump(exclude_unset=True)
+        return cls(**old.model_dump(), **patched)
+
 
 class Card(BaseModel):
     card_id: str
