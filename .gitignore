@@ -1,0 +1,19 @@
+.env
+.env.dev
+.env.prod
+.env.staging
+
+**/*.cpython
+
+**/__pycache__
+*$py.class
+
+ __pycache__/
+ *.pyc
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*$py.class
+src/**/__pycache__/**
+
+
