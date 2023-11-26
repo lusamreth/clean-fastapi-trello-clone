@@ -1,3 +1,4 @@
+import os
 import jwt
 import bcrypt
 import base64
@@ -44,12 +45,12 @@ class AccessToken(TokenProto):
     def __init__(
         self,
         user_id: str,
-        expire_in=900,
+        expire_in=tokenSettings.ACCESS_TOKEN_EXPIRATION_TIME,
         algorithm=tokenSettings.JWT_ALGORITHM,
     ):
         self.payload = AccessTokenPayload(user_id=user_id)
         self.algo = algorithm
-        self.expire = expire_in
+        self.expire = float(expire_in)
         self.scope = ""
 
     def __call__(self):
@@ -60,8 +61,8 @@ class AccessToken(TokenProto):
             # "iss": "reth.server.com",
         }
 
-        if self.expire > 1800:
-            raise Exception("AccessToken cannot be longer than half an hour!")
+        if self.expire > 1800 and os.getenv("ENV", "0") == "1":
+            raise ValueError("AccessToken cannot be longer than half an hour!")
 
         token = jwt.encode(
             accessTokenPayload,
@@ -82,13 +83,13 @@ class RefreshToken(TokenProto):
     def __init__(
         self,
         user_id,
-        expire_in=24 * 3600 * 7,
+        expire_in=tokenSettings.REFRESH_TOKEN_EXPIRATION_TIME,
         algorithm=tokenSettings.JWT_ALGORITHM,
     ):
         token_claim_id = uuid4()
         self.payload = RefreshTokenPayload(user_id=user_id, jti=str(token_claim_id))
         self.algo = algorithm
-        self.expire = expire_in
+        self.expire = float(expire_in)
         self.scope = ""
 
     def __call__(self):

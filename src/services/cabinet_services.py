@@ -22,9 +22,20 @@ class CabinetService:
         conv = lambda Cdata: CabinetResult(**Cdata.model_dump())
         return ok(CabinetBulkResult(cabinets=list(map(conv, items))))
 
+    def getOneCabinets(self, cabinet_id: str):
+        item = self.repo.get(cabinet_id)
+        if item is None:
+            return err(
+                "Cabinet with the id {} is not found".format(cabinet_id),
+                AppErrors.EMPTY,
+            )
+
+        conv = lambda Cdata: CabinetResult(**Cdata.model_dump())
+        return ok(conv(item))
+
     def appendBoardToCabinet(self, cabinet_id: str, board: BoardSchema):
         fetched = self.repo.get(cabinet_id)
-        board_id = board.id
+        board_id = board.board_id
         entity = self.repo.db_to_entity(fetched)
 
         if entity is None:

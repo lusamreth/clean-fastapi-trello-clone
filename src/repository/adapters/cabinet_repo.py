@@ -39,7 +39,6 @@ class CabinetRepoImpl(BaseRepo[CabinetSchema], CabinetRepo):
                 name=db_data.name,
                 author=db_data.author,
                 # boardRefs=list(map(schemaConverter,db_data.board_id_refs)),
-                boardRefs=list(map(schemaConverter, [])),
                 createdOn=float(db_data.created_on.timestamp()),
             )
 
@@ -52,7 +51,6 @@ class CabinetRepoImpl(BaseRepo[CabinetSchema], CabinetRepo):
                 "cabinet_id": cd.cabinetId,
                 "name": cd.name,
                 "author": cd.author,
-                "board_id_refs": [],
             }
 
             if not to_dict:

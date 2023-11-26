@@ -1,6 +1,14 @@
 from typing import Optional
 from pydantic import BaseModel
-from core.generics import Right, ServiceDTO, ServiceResult, err, ok,ErrorTitle,AppErrors
+from core.generics import (
+    Right,
+    ServiceDTO,
+    ServiceResult,
+    err,
+    ok,
+    ErrorTitle,
+    AppErrors,
+)
 from core.security import TokenCipher
 from core.utils.token import generateTokenSets
 from domains.auth import TokenCredential
@@ -42,8 +50,11 @@ class UserService:
 
         if existed is not None:
             # raise AuthError("User is already existed !", title="Duplicated Error")
-            return err(AppErrors.AUTH,"User is already existed !",
-                       title=ErrorTitle.UNAUTHENTICATED)
+            return err(
+                AppErrors.AUTH,
+                "User is already existed !",
+                title=ErrorTitle.UNAUTHENTICATED,
+            )
 
         _ = self.repo.add(
             **{
@@ -53,18 +64,18 @@ class UserService:
         )
 
         return ok(
-                    msg="Registration success!",
-                    data=UserProfile(**userInfo.model_dump()).model_dump(),
-                )
+            msg="Registration success!",
+            data=UserProfile(**userInfo.model_dump()).model_dump(),
+        )
 
     def loginUser(self, loginInfo: LoginInfoInput) -> ServiceDTO:
         existed = self.repo.get_by_email(loginInfo.email)
         if existed is None:
             raise AuthError("Invalid Email or Password!", title="Unauthenticated")
-        try : 
+        try:
             tokenResult = generateTokenSets(user_id=existed.userId, token_type="Bearer")
-        except Exception as tkError: 
-            return err(AppErrors.AUTH ,"Token failure")
+        except Exception as tkError:
+            return err(AppErrors.AUTH, "Token failure: {}".format(tkError))
 
         refreshExpire = tokenResult.tokenExpiration.refreshToken
 
@@ -79,9 +90,7 @@ class UserService:
         )
 
         _db_res = self.authRepo.append_refresh_token(existed.userId, tkdCred)
-        return ok(
-            msg="login was successfull!", data=tokenResult.dict()
-        )
+        return ok(msg="login was successfull!", data=tokenResult.dict())
 
     def getProfile(self, user_id: str, scope: Optional[list[str]]) -> ServiceDTO:
         _db_existed = self.repo.get(user_id)
@@ -89,7 +98,7 @@ class UserService:
 
         if _db_existed is None or userInfo is None:
             raise AuthError("Incorrect user id !!")
-        
+
         return ok(data=UserProfile(**userInfo.model_dump()))
 
     # def recoverPassword(self, passInput: UpdatePasswordHintRequest):

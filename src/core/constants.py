@@ -8,7 +8,9 @@ class ErrorTitle(Enum):
     TOKEN_ERROR = "Token Gen Error"
     UNKNOWN = "Unknown error"
 
-class AppErrors: 
+
+class AppErrors:
     AUTH = "auth_error"
     VALIDATION = "validation"
     EMPTY = "not_found"
+    INTERNAL = "internal_error"

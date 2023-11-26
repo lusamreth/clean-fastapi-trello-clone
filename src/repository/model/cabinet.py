@@ -1,5 +1,3 @@
-from typing import Optional
-from pydantic_core.core_schema import NullableSchema
 from sqlalchemy import DateTime, ForeignKey, String
 from database.main import Base
 from sqlalchemy.sql import func
@@ -20,7 +18,7 @@ class BoardSchema(Base):
     cabinet_id: Mapped[str] = mapped_column(
         ForeignKey("cabinet.cabinet_id", ondelete="CASCADE")
     )
-    cabinet = relationship("CabinetSchema", back_populates="board_id_refs")
+    cabinet = relationship("CabinetSchema", back_populates="boards")
 
 
 class CabinetSchema(Base):
@@ -30,8 +28,8 @@ class CabinetSchema(Base):
     author: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String(1028), nullable=True)
     # board_id_refs : Mapped[list["BoardSchema"]] = relationship(back_populates="cabinetSchema",uselist=True)
-    board_id_refs: Mapped[list["BoardSchema"]] = relationship(
-        cascade="all,delete", back_populates="cabinet", uselist=True
+    boards: Mapped[list["BoardSchema"]] = relationship(
+        cascade="all,delete", back_populates="cabinet", uselist=True, lazy="subquery"
     )
     created_on: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), default=func.now()

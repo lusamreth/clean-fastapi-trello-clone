@@ -17,7 +17,7 @@ class BoardRepoImpl(BaseRepo[BoardSchema], BoardRepo):
         super().__init__(
             session_factory=session_factory,
             model=BoardSchema,
-            primary_key_identifier="cabinet_id",
+            primary_key_identifier="board_id",
         )
 
     def db_to_entity(self, board_repo_data: BoardSchema | None):
@@ -39,7 +39,6 @@ class BoardRepoImpl(BaseRepo[BoardSchema], BoardRepo):
                 "name": board.name,
                 "description": board.description,
                 "topic": board.topic,
-                # "cardRefs": [],
                 "cabinet_id": cabinet_id,
             }
         else:
@@ -50,9 +49,3 @@ class BoardRepoImpl(BaseRepo[BoardSchema], BoardRepo):
                 topic=board.topic,
                 cabinet_id=cabinet_id,
             )
-
-    # def add(self, cabinet_id: str, detail: BoardSchema):
-    #     with self.session_factory() as session:
-    #         session.query(self.model.board_id)
-    #         pass
-    #     pass

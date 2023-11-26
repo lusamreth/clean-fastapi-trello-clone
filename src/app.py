@@ -1,7 +1,5 @@
 from collections.abc import Callable
-import time
 from fastapi.routing import APIRoute
-import uvicorn
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +11,7 @@ from core.exceptions import (
     ErrorLink,
     ErrorResponse,
 )
+import uvicorn
 
 app = FastAPI()
 
@@ -51,16 +50,6 @@ async def core_exception_handler(request: Request, exc: CoreException):
 
 initializeRouter(app)
 app.router.route_class = DTOPROCESSOR
-
-# @app.middleware("http")
-# async def add_process_time_header(request: Request, call_next):
-#     start_time = time.time()
-#     response = await call_next(request)
-#     process_time = time.time() - start_time
-#     response.headers["X-Process-Time"] = str(process_time)
-#     return response
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],

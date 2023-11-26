@@ -18,10 +18,16 @@ class BoardBulkResult(BaseModel):
     boards: list[BoardResult]
 
 
-class FetchBoardBulks(Board):
+class FetchBoardBulks(BaseModel):
     cabinet_id: str
     pass
 
 
-class PatchBoardOutput(Board):
-    pass
+class PatchBoardInput(BaseModel):
+    name: str
+    topic: str
+    description: Optional[str]
+
+
+class RemoveBoardOutput(BaseModel):
+    removed: int

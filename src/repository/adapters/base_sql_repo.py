@@ -71,7 +71,6 @@ class BaseRepo(BaseRepository[T]):
                 .filter(self.model.__dict__[self.identifier] == id)
                 .first()
             )
-
             if query is None:
                 raise Exception("Element Not found!")
 
