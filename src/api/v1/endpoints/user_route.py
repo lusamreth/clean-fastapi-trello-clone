@@ -25,31 +25,28 @@ from ..provider import getUserService, bearerSec
 userRouter = APIRouter(tags=["User"])
 
 
+@exceptionHandler([CoreException, AuthError])
 @userRouter.post("/register")
 async def register(
     userInfo: RegistrationInfoInput,
-    userService: UserService =Depends(getUserService),
+    userService: UserService = Depends(getUserService),
 ):
     result = userService.registerUser(userInfo)
     return result.unwrap()
 
 
+@exceptionHandler([AuthError])
 @userRouter.post("/login")
-@exceptionHandler(AuthError)
-async def login(
-    userInfo: LoginInfoInput, userService=Depends(getUserService)
-):
+async def login(userInfo: LoginInfoInput, userService=Depends(getUserService)):
     result = userService.loginUser(userInfo)
     return result.unwrap()
 
 
 # dependencies=[Depends(bearerSec)]
-@userRouter.get("/me")
 @exceptionHandler(CoreException)
+@userRouter.get("/me")
 async def profile(
-        token=Depends(bearerSec), userService : UserService = Depends(getUserService)
+    token=Depends(bearerSec), userService: UserService = Depends(getUserService)
 ):
-    result = userService.getProfile(
-        token["user_id"], scope=["email"]
-    )
+    result = userService.getProfile(token["user_id"], scope=["email"])
     return result.unwrap()
