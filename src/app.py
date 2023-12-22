@@ -1,17 +1,14 @@
 from collections.abc import Callable
-from fastapi.routing import APIRoute
 
+import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
+
+from core.exceptions import CoreException, ErrorDetail, ErrorLink, ErrorResponse
+
 from .api.v1.router import initializeRouter
-from core.exceptions import (
-    CoreException,
-    ErrorDetail,
-    ErrorLink,
-    ErrorResponse,
-)
-import uvicorn
 
 app = FastAPI()
 
@@ -49,6 +46,7 @@ async def core_exception_handler(request: Request, exc: CoreException):
 
 
 initializeRouter(app)
+
 app.router.route_class = DTOPROCESSOR
 app.add_middleware(
     CORSMiddleware,
