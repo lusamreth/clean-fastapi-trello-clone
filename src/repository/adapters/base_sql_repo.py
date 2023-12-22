@@ -3,7 +3,6 @@ from sqlalchemy.orm import DeclarativeBase, Session
 from sqlalchemy.exc import IntegrityError
 from core.base_repo import BaseRepository
 from typing import Callable, Generic, TypeVar
-import inspect
 
 T = TypeVar("T")
 
@@ -13,6 +12,12 @@ def clearNone(original: dict):
     original.clear()
     original.update(filtered)
     return filtered
+
+
+class LazyOption:
+    def __init__(self, queryField, lazy_type="select"):
+        self.queryField = queryField
+        self.lazy_type = lazy_type
 
 
 class BaseRepo(BaseRepository[T]):
@@ -41,25 +46,39 @@ class BaseRepo(BaseRepository[T]):
 
         return query
 
-    def update(self, id, patches):
+    def update(self, id, patches) -> int:
         if isinstance(patches, dict):
             filteredPatches = clearNone(patches)
         else:
             filteredPatches = clearNone(patches.dict())
-        with self.session_factory() as session:
-            session.query(self.model).filter(
-                self.model.__dict__[self.identifier] == id
-            ).update(filteredPatches)
-            session.commit()
 
-    def get(self, id: str) -> T | None:
         with self.session_factory() as session:
-            res = (
+            update_status = (
                 session.query(self.model)
                 .filter(self.model.__dict__[self.identifier] == id)
-                .one()
+                .update(filteredPatches)
             )
-            return res
+
+            session.commit()
+            return update_status
+
+    def get(self, id: str, lazy_options: dict | None = None) -> T | None:
+        with self.session_factory() as session:
+            if lazy_options:
+                res = (
+                    session.query(self.model)
+                    .filter(self.model.__dict__[self.identifier] == id)
+                    .first()
+                )
+                if res is not None:
+                    return res.__getattribute__(lazy_options["queryField"])
+            else:
+                res = (
+                    session.query(self.model)
+                    .filter(self.model.__dict__[self.identifier] == id)
+                    .first()
+                )
+                return res
 
     def list(self, id: str):
         raise NotImplemented()
@@ -72,11 +91,11 @@ class BaseRepo(BaseRepository[T]):
                 .first()
             )
             if query is None:
-                raise Exception("Element Not found!")
+                return None
 
-            isDel = session.delete(query)
+            _isDel = session.delete(query)
             session.commit()
-            return isDel
+            return True
 
 
 # BaseRepo()
