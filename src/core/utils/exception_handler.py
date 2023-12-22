@@ -20,7 +20,12 @@ def exceptionHandler(exception_classes):
             try:
                 return await func(*args, **kwargs)
             except exception_classes as e:
-                return e.handle_response()
+                # return e.handle_response()
+                raise CoreException(
+                    status_code=400,
+                    message=str(e),
+                    title="value_error",
+                )
             except ValueError as e:
                 raise CoreException(
                     status_code=400,
