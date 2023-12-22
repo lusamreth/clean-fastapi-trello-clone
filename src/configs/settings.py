@@ -71,7 +71,9 @@ class JwtSourceParse(EnvSettingsSource):
             or field_name == "REFRESH_TOKEN_EXPIRATION_TIME"
         ):
             return parseTime(value)
+
         if value is None:
+            print("found non value", field, field_name)
             return value
         return value
         # return json.loads(value)
@@ -118,21 +120,8 @@ class ApplicationSettings(BaseSettings):
     JWT_ISSUER: str
 
     AES_KEY: str
-
-    # class Config:
-    #     env_file = getEnvFilename()
-
-    # @validator("ACCESS_TOKEN_EXPIRATION_TIME", pre=True)
-    # def _parse_aToken_time(cls, token_time):
-    #     print("espal", token_time)
-    #     parsed = parseTime(token_time)
-    #     return str(parsed)
-
-    # @validator("REFRESH_TOKEN_EXPIRATION_TIME", pre=True)
-    # def _parse_rToken_time(cls, token_time):
-    #     parsed = parseTime(token_time)
-    #     print("parsed", parsed)
-    #     return str(parsed)
+    HOST: str
+    PORT: str
 
     @classmethod
     def settings_customise_sources(
