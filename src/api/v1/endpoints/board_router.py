@@ -38,9 +38,7 @@ async def fetch_boards(
     token=Depends(bearerSec),
     cabService: BoardService = Depends(getBoardService),
 ):
-    # user_id = "2fa97a0c-f540-4ac6-9cee-6b6a126225bc"
-    user_id = token["user_id"]
-    result = cabService.getAllBoard(FetchBoardBulks(cabinet_id=cabinet_id))
+    result = cabService.getAllBoard(cabinet_id)
     return result.unwrap()
 
 
@@ -64,39 +62,3 @@ async def patch_board(
 ):
     result = cabService.patchBoard(board_id, PatchBoardInput(**patchInfo.dict()))
     return result.unwrap()
-
-
-# @boardRouter.delete("/{board_id}")
-# async def delete_boards(
-#     board_id: str,
-#     token=Depends(bearerSec),
-#     cabService: CabinetService = Depends(getCabinetService),
-# ):
-#     result = cabService.deleteCabinet(board_id)
-#     return result.unwrap()
-
-
-# @boardRouter.patch("/{board_id}")
-# async def update_board(
-#     board_id: str,
-#     detail: PatchCabinetInput,
-#     _token=Depends(bearerSec),
-#     cabService: CabinetService = Depends(getCabinetService),
-# ):
-#     result = cabService.updateCabinet(board_id, detail)
-#     return result.unwrap()
-
-
-# # @boardRouter.post("/board/{board_id}")
-# # async def pushcard(
-# #     board_id :str,
-# #     token = Depends(bearerSec),
-# #     cabService: CabinetService=Depends(getCabinetService),
-# # ):
-# #     result = cabService.updateCabinet(board_id);
-# #     return result.unwrap()
-
-
-# @boardRouter.get("/lists")
-# def main():
-#     pass
