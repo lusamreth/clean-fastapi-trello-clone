@@ -6,7 +6,7 @@ from fastapi.routing import APIRoute
 
 from api.v1.provider import getCabinetService, bearerSec
 
-from schemas.cabinet import CreateCabinet, PatchCabinetInput
+from schemas.cabinet import CreateCabinet, CreateCabinetInput, PatchCabinetInput
 from services.cabinet_services import CabinetService
 
 
@@ -15,7 +15,7 @@ cabinetRouter = APIRouter(tags=["Cabinet"])
 
 @cabinetRouter.post("/")
 async def create_cabinet(
-    cabInfo: CreateCabinet,
+    cabInfo: CreateCabinetInput,
     token=Depends(bearerSec),
     cabService: CabinetService = Depends(getCabinetService),
 ):
@@ -57,16 +57,6 @@ async def update_cabinet(
 ):
     result = cabService.updateCabinet(cabinet_id, detail)
     return result.unwrap()
-
-
-# @cabinetRouter.post("/board/{cabinet_id}")
-# async def pushcard(
-#     cabinet_id :str,
-#     token = Depends(bearerSec),
-#     cabService: CabinetService=Depends(getCabinetService),
-# ):
-#     result = cabService.updateCabinet(cabinet_id);
-#     return result.unwrap()
 
 
 @cabinetRouter.get("/lists")
