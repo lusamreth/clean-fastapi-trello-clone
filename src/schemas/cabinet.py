@@ -1,19 +1,27 @@
 from typing import Optional
 from pydantic import BaseModel
-from domains.cabinet import Cabinet,CabinetPatcher
+from domains.cabinet import Cabinet, CabinetPatcher
+from schemas.base_crud import PatchActionOutput
 
 
 class CreateCabinet(BaseModel):
-    cabinetName: str
+    name: str
     authorId: str
     description: Optional[str]
+
+
+class CreateCabinetInput(BaseModel):
+    name: str
+    description: Optional[str]
+
 
 class PatchCabinetInput(CabinetPatcher):
     pass
 
-    # cabinetName: Optional[str]
-    # author: Optional[str]
-    # description: Optional[str]
+
+class PatchCabinetOutput(PatchActionOutput):
+    attributes: CabinetPatcher
+
 
 # no need to use DTO cause the project size is quite small
 class CabinetResult(Cabinet):
@@ -24,5 +32,5 @@ class CabinetBulkResult(BaseModel):
     cabinets: list[CabinetResult]
 
 
-class CabinetRemovalResult(BaseModel):
-    cabinetId : str
+class CabinetRemovalOutput(BaseModel):
+    cabinetId: str

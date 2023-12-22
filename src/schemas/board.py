@@ -1,9 +1,10 @@
 from typing import Optional
 from pydantic import BaseModel
-from domains.board import Board
+from domains.board import Board, BoardPatcher
+from schemas.base_crud import BulkResult, FetchActionBulks, CreateActionInput
 
 
-class CreateBoardInput(BaseModel):
+class CreateBoardInput(CreateActionInput):
     cabinetId: str
     name: str
     topic: str
@@ -14,19 +15,26 @@ class BoardResult(Board):
     pass
 
 
-class BoardBulkResult(BaseModel):
+class BoardBulkResult(BulkResult):
     boards: list[BoardResult]
 
 
-class FetchBoardBulks(BaseModel):
-    cabinet_id: str
+class FetchBoardBulks(FetchActionBulks):
+    cabinetId: str
     pass
 
 
-class PatchBoardInput(BaseModel):
-    name: str
-    topic: str
-    description: Optional[str]
+class PatchBoardInput(BoardPatcher):
+    pass
+    # name: str
+    # topic: str
+    # description: Optional[str]
+
+
+class PatchBoardOutput(BaseModel):
+    boardId: str
+    modified: int
+    attributes: BoardPatcher
 
 
 class RemoveBoardOutput(BaseModel):

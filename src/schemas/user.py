@@ -23,7 +23,7 @@ class RegistrationInfoInput(BaseModel):
     password2: str
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "email": "hide@hide.com",
                 "password1": "pw",
@@ -39,7 +39,7 @@ class UserProfile(BaseModel):
     email: str
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "userId": "abc123",
             "username": "hidey",
             "email": "hidey@gmail.com",
@@ -50,7 +50,7 @@ class UpdatePasswordHintRequest(BaseModel):
     recovery_email: str
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "recovery_email": "hide@hide.com",
             }
@@ -64,7 +64,7 @@ class UpdatePasswordRequest(BaseModel):
     password2: str
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "password1": "pw",
                 "password2": "pw",
