@@ -19,7 +19,11 @@ pydantic-settings = "^2.0.3"
 pycryptodomex = "^3.19.0"
 oslash = "^0.6.3"
 alembic = "^1.12.1"
+structlog = "^23.2.0"
 
+
+[tool.poetry.group.dev.dependencies]
+requests = "^2.31.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -27,3 +31,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 start = "src.app:main"
+adhoc-test = "tests.ad_hoc_testing_script:main"
+
