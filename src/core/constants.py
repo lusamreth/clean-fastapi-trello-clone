@@ -7,6 +7,7 @@ class ErrorTitle(Enum):
     UNAUTHORIZED = "Unauthorized"
     TOKEN_ERROR = "Token Gen Error"
     UNKNOWN = "Unknown error"
+    NOT_FOUND = "Not Found"
 
 
 class AppErrors:
