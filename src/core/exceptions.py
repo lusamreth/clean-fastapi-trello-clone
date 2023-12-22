@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Any, Dict, Optional
-from fastapi import status,Request
+from fastapi import status, Request
 from pydantic import BaseModel
 
 # from core.generics import AppErrors, GenericServiceException,ServiceDTO, ServiceResult, isLeft, isRight
@@ -41,21 +41,18 @@ class CoreException(Exception):
         self.title = title
 
     @classmethod
-    def create(cls,**args): 
-        print("init touch create",args)
+    def create(cls, **args):
+        print("init touch create", args)
         return cls(**args)
 
     def injectStatusCode(self):
         pass
-    
-    # def resolveDTOMapping(self):
-    #     print(self.TAG)
 
 
 class DuplicatedError(CoreException):
     def injectStatusCode(self):
         self.status_code = status.HTTP_400_BAD_REQUEST
-    
+
 
 class AuthError(CoreException):
     def injectStatusCode(self):
@@ -71,8 +68,13 @@ class ValidationError(CoreException):
     def injectStatusCode(self):
         self.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
 
+
+class InternalError(CoreException):
+    def injectStatusCode(self):
+        self.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
 # DTO2HttpFactory.registerErrorType(AppErrors.DATA_ACCESS, DuplicatedError.create)
 
 # DTO2HttpFactory.registerErrorType("auth_error", AuthError)
 # DTO2HttpFactory.registerErrorType("auth_error", AuthError)
-
