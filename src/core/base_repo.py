@@ -23,7 +23,7 @@ class BaseReadOnlyRepository(
     ABC,
 ):
     @abstractmethod
-    def get(self, id: str) -> Optional[T]:
+    def get(self, id: str, lazy_options: dict | None = None) -> Optional[T]:
         ...
 
     @abstractmethod
