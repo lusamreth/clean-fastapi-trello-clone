@@ -1,7 +1,7 @@
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, Float, ForeignKey, String
 from database.main import Base
 from sqlalchemy.sql import func
-
+from .card import CardSchema
 from sqlalchemy.orm import (
     mapped_column,
     Mapped,
@@ -18,7 +18,16 @@ class BoardSchema(Base):
     cabinet_id: Mapped[str] = mapped_column(
         ForeignKey("cabinet.cabinet_id", ondelete="CASCADE")
     )
+    cards: Mapped[list["CardSchema"]] = relationship(
+        cascade="all,delete",
+        backref="board",
+        uselist=True,
+        lazy=True,
+        # lazy="joined",
+    )
     cabinet = relationship("CabinetSchema", back_populates="boards")
+    modified_on: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
+    created_on: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
 
 
 class CabinetSchema(Base):
@@ -30,6 +39,10 @@ class CabinetSchema(Base):
     # board_id_refs : Mapped[list["BoardSchema"]] = relationship(back_populates="cabinetSchema",uselist=True)
     boards: Mapped[list["BoardSchema"]] = relationship(
         cascade="all,delete", back_populates="cabinet", uselist=True, lazy="subquery"
+    )
+
+    modified_on: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
     )
     created_on: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), default=func.now()
