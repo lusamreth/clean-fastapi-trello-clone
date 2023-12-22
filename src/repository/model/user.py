@@ -9,9 +9,7 @@ from sqlalchemy.orm import (
 
 class UserSchema(Base):
     __tablename__: str = "user"
-    user_id: Mapped[str] = mapped_column(
-        String(255), primary_key=True
-    )
+    user_id: Mapped[str] = mapped_column(String(255), primary_key=True)
     username: Mapped[str] = mapped_column(String(255))
     password: Mapped[str] = mapped_column(String(255))
     email: Mapped[str] = mapped_column(String(255))

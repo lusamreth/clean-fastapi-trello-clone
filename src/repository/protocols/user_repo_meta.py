@@ -15,7 +15,5 @@ class UserRepo(BaseRepository[UserSchema]):
         pass
 
     @abstractmethod
-    def db_to_entity(
-        self, user_repo_data: UserSchema | None
-    ) -> User | None:
+    def db_to_entity(self, user_repo_data: UserSchema | None) -> User | None:
         pass
