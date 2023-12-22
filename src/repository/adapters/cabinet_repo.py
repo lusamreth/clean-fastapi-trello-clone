@@ -1,3 +1,5 @@
+from datetime import date, datetime
+from core.utils.helpers import unwrapDBTimeSet, unwrapEntityTimeSet
 from domains.cabinet import Cabinet
 from repository.adapters.base_sql_repo import BaseRepo
 from repository.model.cabinet import BoardSchema, CabinetSchema
@@ -38,8 +40,10 @@ class CabinetRepoImpl(BaseRepo[CabinetSchema], CabinetRepo):
                 cabinetId=db_data.cabinet_id,
                 name=db_data.name,
                 author=db_data.author,
-                # boardRefs=list(map(schemaConverter,db_data.board_id_refs)),
-                createdOn=float(db_data.created_on.timestamp()),
+                boardRefs=list(map(schemaConverter, db_data.boards)),
+                **unwrapDBTimeSet(db_data).model_dump()
+                # createdOn=float(db_data.created_on.timestamp()),
+                # modifiedOn=float(db_data.modified_on.timestamp()),
             )
 
     def entity_to_db(
@@ -51,16 +55,13 @@ class CabinetRepoImpl(BaseRepo[CabinetSchema], CabinetRepo):
                 "cabinet_id": cd.cabinetId,
                 "name": cd.name,
                 "author": cd.author,
+                # cd.modifiedOn
+                # "modified_on": datetime.fromtimestamp(cd.modifiedOn),
+                # "created_on": datetime.fromtimestamp(cd.createdOn),
+                **unwrapEntityTimeSet(cd).model_dump(),
             }
 
             if not to_dict:
                 return CabinetSchema(**_dict_res)
             else:
                 return _dict_res
-
-    def updateBoardRefs(self, boardRef):
-        pass
-
-    # def update(self, cabinet_id : str,detail: CabinetPatcher):
-    #     print("detail",detail)
-    #     return "true"
