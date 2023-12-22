@@ -19,6 +19,11 @@ depends_on: Union[str, Sequence[str], None] = ${repr(depends_on)}
 
 
 def upgrade() -> None:
+    op.drop_constraint("board_ibfk_1", "board", type_="foreignkey")
+    op.drop_constraint("card_ibfk_1", "card", type_="foreignkey")
+    op.drop_constraint("todo_ibfk_1", "todo", type_="foreignkey")
+    op.drop_constraint("task_ibfk_1", "task", type_="foreignkey")
+
     ${upgrades if upgrades else "pass"}
 
 
