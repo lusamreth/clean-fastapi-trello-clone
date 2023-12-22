@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from contextlib import AbstractContextManager
+from core.utils.helpers import unwrapDBTimeSet, unwrapEntityTimeSet
 
 from sqlalchemy.orm import Session
 
@@ -20,7 +21,9 @@ class BoardRepoImpl(BaseRepo[BoardSchema], BoardRepo):
             primary_key_identifier="board_id",
         )
 
-    def db_to_entity(self, board_repo_data: BoardSchema | None):
+    def db_to_entity(
+        self, board_repo_data: BoardSchema | None, cardRefs: list | None = []
+    ):
         bd = board_repo_data
         if bd is not None:
             return Board(
@@ -28,8 +31,10 @@ class BoardRepoImpl(BaseRepo[BoardSchema], BoardRepo):
                 name=bd.name,
                 description=bd.description,
                 topic=bd.topic,
-                cardRefs=[],
-                createdOn=0,
+                cardRefs=cardRefs,
+                **unwrapDBTimeSet(bd).model_dump()
+                # createdOn=0,
+                # modifiedOn=
             )
 
     def entity_to_db(self, cabinet_id: str, board: Board, to_dict: bool = True):
@@ -40,6 +45,7 @@ class BoardRepoImpl(BaseRepo[BoardSchema], BoardRepo):
                 "description": board.description,
                 "topic": board.topic,
                 "cabinet_id": cabinet_id,
+                **unwrapEntityTimeSet(board).model_dump(),
             }
         else:
             return BoardSchema(
