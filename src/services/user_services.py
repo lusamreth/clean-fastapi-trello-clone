@@ -46,13 +46,13 @@ class UserService:
         try:
             userInfo = User.register(**registrationInfo.dict())
         except Exception as e:
-            return err(AppErrors.VALIDATION, str(e), ErrorTitle.DOMAIN_ERROR)
+            return err(str(e), AppErrors.VALIDATION, ErrorTitle.DOMAIN_ERROR)
 
         if existed is not None:
             # raise AuthError("User is already existed !", title="Duplicated Error")
             return err(
-                AppErrors.AUTH,
                 "User is already existed !",
+                AppErrors.AUTH,
                 title=ErrorTitle.UNAUTHENTICATED,
             )
 

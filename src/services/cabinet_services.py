@@ -1,13 +1,15 @@
+from core.constants import ErrorTitle
 from core.generics import err, ok, runDomainService, AppErrors
 from repository.model.cabinet import BoardSchema
 from repository.protocols.cabinet_repo_meta import CabinetRepo
 from domains.cabinet import Cabinet, CabinetPatcher
 from schemas.cabinet import (
     CabinetBulkResult,
-    CabinetRemovalResult,
+    CabinetRemovalOutput,
     CreateCabinet,
     CabinetResult,
     PatchCabinetInput,
+    PatchCabinetOutput,
 )
 
 
@@ -49,7 +51,7 @@ class CabinetService:
 
     def createCabinet(self, cabinet_data: CreateCabinet):
         newCabinet = lambda: Cabinet.create(
-            name=cabinet_data.cabinetName, author=cabinet_data.authorId
+            name=cabinet_data.name, author=cabinet_data.authorId
         )
 
         domainRes = newCabinet()
@@ -66,18 +68,25 @@ class CabinetService:
             _db_res = self.repo.remove(cabinet_id)
         except Exception as e:
             return err(str(e), AppErrors.EMPTY)
-        return ok(CabinetRemovalResult(cabinetId=cabinet_id))
+        return ok(CabinetRemovalOutput(cabinetId=cabinet_id))
 
     def updateCabinet(self, cabinet_id: str, patchDetail: PatchCabinetInput):
         try:
-            newDomainObj = self.repo.update(
+            _res = self.repo.update(
                 cabinet_id, CabinetPatcher(**patchDetail.model_dump())
             )
-            print("new new ", newDomainObj)
-            # _db_res = self.repo.update(cabinet_id);
+            if not _res:
+                return err(
+                    "Cabinet with id of {} is not found".format(cabinet_id),
+                    AppErrors.EMPTY,
+                    title=ErrorTitle.NOT_FOUND,
+                )
+
         except Exception as e:
             return err(str(e), AppErrors.EMPTY)
-        return ok(CabinetRemovalResult(cabinetId=cabinet_id))
+        return ok(
+            PatchCabinetOutput(modified=True, id=cabinet_id, attributes=patchDetail)
+        )
 
     # def retrieveCabinet(self):
     #     self.repo.get_all_by_user_id
