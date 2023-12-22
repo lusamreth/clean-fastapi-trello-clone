@@ -17,12 +17,20 @@ class Cabinet(BaseModel):
     author: str
     boardRefs: list[str]
     createdOn: float
+    modifiedOn: float
 
     @classmethod
     def create(cls, name: str, author: str) -> "Cabinet":
         tz = datetime.now().timestamp()
         cId = str(uuid4())
-        return cls(name=name, author=author, cabinetId=cId, boardRefs=[], createdOn=tz)
+        return cls(
+            name=name,
+            author=author,
+            cabinetId=cId,
+            boardRefs=[],
+            createdOn=tz,
+            modifiedOn=tz,
+        )
 
     def appendBoardRef(self, ref: str):
         if self.boardRefs.count(ref) > 0:
@@ -38,31 +46,3 @@ class Cabinet(BaseModel):
     def patchCabinet(cls, old: "Cabinet", partial: CabinetPatcher) -> "Cabinet":
         patched = partial.model_dump(exclude_unset=True)
         return cls(**old.model_dump(), **patched)
-
-
-class Card(BaseModel):
-    card_id: str
-    description: str
-    name: str
-    todo_ref: list[str]
-    createdOn: str
-
-
-class TodoList(BaseModel):
-    todo_id: str
-    tasks: list[str]
-    title: str
-    createdOn: str
-
-
-class ProgressStatus(str, Enum):
-    COMPLETED = "completed"
-    INPROGRESS = "inprogress"
-    CANCELED = "canceled"
-
-
-class Task:
-    task_type: str
-    content: str
-    createdOn: str
-    status: ProgressStatus

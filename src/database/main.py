@@ -15,8 +15,6 @@ def databaseFormat(host, port, username, password, dialect):
     return db_url
 
 
-Base = declarative_base()
-
 dbSettings = getSettings()
 DATABASE_URL = databaseFormat(
     host=dbSettings.DATABASE_HOSTNAME,
@@ -26,12 +24,12 @@ DATABASE_URL = databaseFormat(
     dialect=dbSettings.DATABASE_DIALECT,
 )
 
+Base = declarative_base()
+
 
 class Database:
     def __init__(self, url=DATABASE_URL):
-        self.engine = create_engine(
-            url, echo=True, isolation_level="AUTOCOMMIT"
-        )
+        self.engine = create_engine(url, echo=True, isolation_level="AUTOCOMMIT")
         self.engine_url = url
         self.autoCreateDB()
         self.initializeDB()
@@ -39,13 +37,9 @@ class Database:
     def autoCreateDB(self):
         with self.engine.connect() as conn:
             conn.execute(text("commit"))
-            conn.execute(
-                text(f"CREATE DATABASE IF NOT EXISTS {database}")
-            )
+            conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {database}"))
             conn.execute(text(f"USE {database}"))
-            self.engine_url = "{}/{}".format(
-                self.engine_url, database
-            )
+            self.engine_url = "{}/{}".format(self.engine_url, database)
             self.engine = create_engine(self.engine_url)
 
     def initializeDB(self):

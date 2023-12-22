@@ -16,6 +16,7 @@ class Board(BaseModel):
     topic: str
     description: Optional[str]
     cardRefs: list[str]
+    modifiedOn: float
     createdOn: float
 
     @classmethod
@@ -30,6 +31,7 @@ class Board(BaseModel):
             description=None,
             cardRefs=[],
             createdOn=tz,
+            modifiedOn=tz,
         )
 
     def add_card(self, cardId: str):
