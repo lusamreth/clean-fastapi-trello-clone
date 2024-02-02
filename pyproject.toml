@@ -20,6 +20,7 @@ pycryptodomex = "^3.19.0"
 oslash = "^0.6.3"
 alembic = "^1.12.1"
 structlog = "^23.2.0"
+rich = "^13.7.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -32,4 +33,6 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 start = "src.app:main"
 adhoc-test = "tests.ad_hoc_testing_script:main"
+meta-test = "tests.test_repo_meta:main"
+show-off= "tests.show_off:__main__"
 
