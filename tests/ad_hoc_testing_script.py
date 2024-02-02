@@ -1,24 +1,21 @@
 import json
 import logging
+import logging.config
 import os
-import random
-from datetime import datetime, time
-from pathlib import Path
+import sys
+from datetime import datetime
 
 import requests as rq
-from structlog import configure, get_logger
-from structlog.stdlib import LoggerFactory
+import structlog
 
 from core.generics import GenericServiceException, ServiceResult
+from core.logger.logger_test import TestLogger
 from src.configs.settings import getSettings
 from src.schemas.board import CreateBoardInput
 from src.schemas.cabinet import CreateCabinetInput
 from src.schemas.card import CreateCardInput
 from src.schemas.todo import CreateTodoInput
 from src.schemas.user import LoginInfoInput, RegistrationInfoInput
-
-# from src.schemas. import CreateBoardInput
-
 
 settings = getSettings()
 
@@ -30,57 +27,13 @@ def createLogPath():
         os.mkdir("./logs")
         if not os.path.isdir(logPath):
             os.mkdir(logPath)
+    return logPath
 
 
-createLogPath()
-import structlog
+rootLogger = TestLogger.getLogger("ad-hoc-test-logger", createLogPath())
 
-loggedTime = datetime.now().today()
-timeFormat = "{}:{}-{}".format(loggedTime.minute, loggedTime.hour, loggedTime.date())
-filenameFormat = "{}/{}-run".format(
-    logPath,
-    timeFormat,
-)
-
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
-        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S", utc=False),
-        # structlog.processors.JSONRenderer(),
-        structlog.dev.ConsoleRenderer(),
-    ],
-    wrapper_class=structlog.make_filtering_bound_logger(logging.NOTSET),
-    context_class=dict,
-    logger_factory=structlog.WriteLoggerFactory(
-        file=Path(filenameFormat).with_suffix(".log").open("wt")
-    ),
-    # logger_factory=structlog.PrintLoggerFactory(),
-    # cache_logger_on_first_use=False,
-)
-
-rootLogger = get_logger()
-
-# rootLogger = logging.getLogger()
-# rootLogger.setLevel(logging.DEBUG)
-
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-loggedTime = datetime.now().today()
-
-timeFormat = "{}:{}-{}".format(loggedTime.minute, loggedTime.hour, loggedTime.date())
-filenameFormat = "{}/{}-run".format(
-    logPath,
-    timeFormat,
-)
-
-
-# HOSTURL = "http://{}:{}".format(settings.HOST, settings.PORT)
 HOSTURL = "http://{}:{}".format("0.0.0.0", "8000")
 API_VERSION = "v1"
-
-# log = rootLogger.Logger("liveTestLogger")
 
 
 def getResource(tag, resource=""):
@@ -90,12 +43,11 @@ def getResource(tag, resource=""):
 def serialize(json_payload: dict) -> ServiceResult:
     _cond1 = json_payload.get("data") is not None
     _cond2 = json_payload.get("message") is not None
-    logging.debug("json payload: {}".format(json_payload))
+    rootLogger.info("json payload ", payload=json_payload, extra={"markup": True})
 
     if _cond1 and _cond2:
         return ServiceResult(**json_payload)
     else:
-        print(json_payload)
         raise Exception("Bump Into error while serializing")
 
 
@@ -136,8 +88,7 @@ def authProcess() -> ServiceResult:
                 password="test@123456789",
             ).model_dump_json(),
         )
-
-        rootLogger.info("login res: {}".format(login_res.json()))
+        rootLogger.info("login response ", result=login_res.json())
         return serialize(login_res.json())
     else:
         raise Exception("Cannot handling this status code {}".format(jj["status"]))
@@ -150,7 +101,7 @@ class ChainCall:
         self.prevContext = []
 
     def tail(self, fieldname: str, level=-1) -> str:
-        print(self.prevContext[len(self.prevContext) - 1][fieldname])
+        # print(self.prevContext[len(self.prevContext) - 1][fieldname])
         return self.prevContext[len(self.prevContext) - 1][fieldname]
 
     def createIfEmpty(self, name, data, queryStr={}):
@@ -163,16 +114,14 @@ class ChainCall:
         if len(self.states) != 0:
             prev = self.states[-1]
             if prev is False:
-                print("Found failure! Cannot continue")
+                rootLogger.exception("Found failure! Cannot continue")
 
         pluralName = "{}s".format(name)
-
-        rootLogger.info("Fetch Result of {} : {}".format(name, result))
+        rootLogger.info("fetch result of entity {} ".format(name), result=result)
 
         manyRes = result.data[pluralName]
         if len(manyRes) == 0:
             postRes = self.authReq("post", getResource(name), data)
-            # print("postRes", postRes)
             self.prevContext.append(postRes.data)
             isValid = postRes.data is not None
             self.states.append(isValid)
@@ -213,4 +162,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    pass
