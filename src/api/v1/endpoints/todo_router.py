@@ -1,18 +1,12 @@
 from collections.abc import Callable
-from fastapi import APIRouter, Depends, Path, Query, Response, Request
 from typing import Annotated
 
+from fastapi import APIRouter, Depends
 from fastapi.routing import APIRoute
 
-from api.v1.provider import getTodoService, bearerSec
-
-from schemas.todo import (
-    CreateTodoInput,
-    PatchTodoInput,
-)
-
+from api.v1.provider import bearerSec, getTodoService
+from schemas.todo import CreateTodoInput, PatchTodoInput
 from services.todo_services import TodoService
-
 
 todoRouter = APIRouter(tags=["Todo"])
 
@@ -36,8 +30,8 @@ def createTodo(
 
 @todoRouter.delete("/{todo_id}")
 def deleteTodo(
-    todo_id: str,
     # board_id: str, delete_todo: DeleteTodoInput,
+    todo_id: str,
     todoService: TodoService = Depends(getTodoService),
 ):
     return todoService.deleteTodo(todo_id).unwrap()

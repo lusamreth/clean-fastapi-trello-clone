@@ -1,18 +1,12 @@
 from collections.abc import Callable
-from fastapi import APIRouter, Depends, Path, Query, Response, Request
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 from fastapi.routing import APIRoute
 
-from api.v1.provider import getBoardService, getCabinetService, bearerSec
-
-from schemas.board import (
-    CreateBoardInput,
-    FetchBoardBulks,
-    PatchBoardInput,
-)
+from api.v1.provider import bearerSec, getBoardService, getCabinetService
+from schemas.board import CreateBoardInput, FetchBoardBulks, PatchBoardInput
 from services.board_services import BoardService
-
 
 boardRouter = APIRouter(tags=["Board"])
 
