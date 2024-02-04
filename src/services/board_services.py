@@ -1,7 +1,8 @@
-from core.generics import ServiceDTO, err, ok, runDomainService, AppErrors
+from core.generics import AppErrors, ServiceDTO, err, ok, runDomainService
+from domains.board import Board, BoardPatcher
+from repository.adapters.base_sql_repo import LazyResult
 from repository.model.cabinet import CabinetSchema
 from repository.protocols.board_repo_meta import BoardRepo
-from domains.board import Board, BoardPatcher
 from repository.protocols.cabinet_repo_meta import CabinetRepo
 from schemas.board import (
     BoardBulkResult,
@@ -41,18 +42,45 @@ class BoardService:
     def getAllBoard(self, cabinet_id: str):
         cid = cabinet_id
         # self.repo.add(self.repo.entity_to_db(fetcher.cabinet_id, entity, to_dict=True))
-        db_result = self.cabinet.repo.get(cid, lazy_options={"queryField": "boards"})
-        if db_result is None:
+        lazy_result = self.cabinet.repo.get(
+            cid,
+            lazy_options={
+                "query": {
+                    "field": "boards",
+                    "select": {
+                        # "from": "boards",
+                        "field": "cards",
+                        "mapFn": lambda cards: list(
+                            map(lambda card: card.card_id, cards)
+                        ),
+                    },
+                },
+            },
+        )
+
+        if lazy_result is None:
             return err(
                 "Cabinet with the id {} is not found".format(cid),
                 AppErrors.EMPTY,
             )
 
-        board_db_to_entity = lambda board_db_data: self.repo.db_to_entity(board_db_data)
-        boards = map(board_db_to_entity, db_result)
-        conv = lambda data: BoardResult(**data.model_dump())
+        if not isinstance(lazy_result, LazyResult):
+            return err(
+                "Cabinet with the id {} yield incorrect data access result".format(cid),
+                AppErrors.INTERNAL,
+            )
 
+        db_result = lazy_result.data
+
+        # cards = list(map(lambda card: card.id, board_db_data.cards))
+        def board_db_to_entity(data_tuple):
+            index, board_db_data = data_tuple
+            return self.repo.db_to_entity(board_db_data, lazy_result.selected[index])
+
+        boards = map(board_db_to_entity, enumerate(db_result))
+        conv = lambda data: BoardResult(**data.model_dump())
         boardList = list(map(conv, boards))
+
         return ok(
             BoardBulkResult(boards=boardList, count=len(boardList)),
             "successfully fetch all boards",
