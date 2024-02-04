@@ -16,4 +16,5 @@
 *$py.class
 src/**/__pycache__/**
 
-
+logs
+logs/**
