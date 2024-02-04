@@ -1,17 +1,21 @@
 from typing import Optional
+
 from pydantic import BaseModel
+
+from core.exceptions import AuthError, ValidationError
 from core.generics import (
+    AppErrors,
+    ErrorTitle,
     Right,
     ServiceDTO,
     ServiceResult,
     err,
     ok,
-    ErrorTitle,
-    AppErrors,
 )
 from core.security import TokenCipher
 from core.utils.token import generateTokenSets
 from domains.auth import TokenCredential
+from domains.user import User
 from repository.protocols.auth_repo_meta import AuthRepo
 from repository.protocols.user_repo_meta import UserRepo
 from schemas.user import (
@@ -22,8 +26,6 @@ from schemas.user import (
     UserLoginResponse,
     UserProfile,
 )
-from core.exceptions import AuthError, ValidationError
-from domains.user import User
 
 
 class UserRegisterResponse(BaseModel):
@@ -49,7 +51,6 @@ class UserService:
             return err(str(e), AppErrors.VALIDATION, ErrorTitle.DOMAIN_ERROR)
 
         if existed is not None:
-            # raise AuthError("User is already existed !", title="Duplicated Error")
             return err(
                 "User is already existed !",
                 AppErrors.AUTH,
