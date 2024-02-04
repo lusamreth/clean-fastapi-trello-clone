@@ -1,12 +1,10 @@
 from sqlalchemy import DateTime, ForeignKey, String
-from database.main import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
+
+from database.main import Base
+
 from .todo import TodoSchema
-from sqlalchemy.orm import (
-    mapped_column,
-    Mapped,
-    relationship,
-)
 
 
 class CardSchema(Base):

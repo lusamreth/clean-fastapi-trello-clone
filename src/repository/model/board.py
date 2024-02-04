@@ -1,12 +1,10 @@
 from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from database.main import Base
-from .card import CardSchema
-from sqlalchemy.orm import (
-    mapped_column,
-    Mapped,
-    relationship,
-)
+
 from .cabinet import CabinetSchema
+from .card import CardSchema
 
 
 class BoardSchema(Base):
@@ -23,6 +21,6 @@ class BoardSchema(Base):
         # back_populates="board",
         uselist=True,
         lazy="select"
-        # lazy="subquery"
+        # lazy="subquery",
     )
     cabinet = relationship("CabinetSchema", back_populates="boards")

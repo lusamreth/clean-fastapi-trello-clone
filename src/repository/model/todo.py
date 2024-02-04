@@ -1,11 +1,8 @@
 from sqlalchemy import DateTime, ForeignKey, String
-from database.main import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-from sqlalchemy.orm import (
-    mapped_column,
-    Mapped,
-    relationship,
-)
+
+from database.main import Base
 
 
 class TodoSchema(Base):
@@ -15,6 +12,7 @@ class TodoSchema(Base):
     name: Mapped[str] = mapped_column(String(255))
     modified_on: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
     created_on: Mapped[DateTime] = mapped_column(DateTime(timezone=True))
+    # description: Mapped[str] = mapped_column(String(255))
     # card = relationship("CardSchema", back_populates="todos")
     tasks: Mapped[list["TaskSchema"]] = relationship("TaskSchema", lazy=True)
 
