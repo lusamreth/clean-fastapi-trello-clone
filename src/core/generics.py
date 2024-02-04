@@ -39,14 +39,19 @@ class BaseBinaryResult(Either[ServiceResult, GenericServiceException]):
 class ErrorDTOFactory:
     def __init__(self):
         self._DTO_Map = {}
+        self._Error_Title_Map = {}
 
-    def registerErrorType(self, type_name: str, err_class_init):
+    def registerErrorType(
+        self, type_name: str, err_class_init, default_err_title=ErrorTitle.UNKNOWN
+    ):
+        self._Error_Title_Map[type_name] = default_err_title
         self._DTO_Map[type_name] = err_class_init
 
     def create(self, key, **kwargs):
         builder = self._DTO_Map.get(key)
         if not builder:
             raise ValueError("Error with type <{}> is not yet registered.".format(key))
+
         return builder(**kwargs)
 
     def fromServiceToWeb(self, wrapped_value: BaseBinaryResult):
@@ -60,21 +65,43 @@ class ErrorDTOFactory:
             return value
         elif isLeft(wrapped_value) and isinstance(value, GenericServiceException):
             eType = value.errType
-            createErrObjFunc = self.create(
-                eType, message=value.message, title=value.errTitle
-            )
+            title = value.errTitle
+
+            if (
+                title is ErrorTitle.UNKNOWN.value
+                and eType is not AppErrors.UNKNOWN.value
+            ):
+                title = self._Error_Title_Map[eType]
+
+            createErrObjFunc = self.create(eType, message=value.message, title=title)
             raise createErrObjFunc
         else:
             return wrapped_value
 
 
 # DTO TYPE SETTINGS
-DTO2HttpFactory = ErrorDTOFactory()
+ServiceHttpFactory = ErrorDTOFactory()
 
-DTO2HttpFactory.registerErrorType(AppErrors.AUTH, AuthError.create)
-DTO2HttpFactory.registerErrorType(AppErrors.VALIDATION, ValidationError.create)
-DTO2HttpFactory.registerErrorType(AppErrors.EMPTY, NotFoundError.create)
-DTO2HttpFactory.registerErrorType(AppErrors.INTERNAL, InternalError.create)
+ServiceHttpFactory.registerErrorType(
+    AppErrors.AUTH, AuthError, default_err_title=ErrorTitle.UNAUTHORIZED
+)
+
+ServiceHttpFactory.registerErrorType(
+    AppErrors.VALIDATION, ValidationError, default_err_title=ErrorTitle.DOMAIN_ERROR
+)
+
+# ServiceHttpFactory.registerErrorType(
+#     AppErrors.DATA_ACCESS, DataAccessError, default_err_title=ErrorTitle.DATA_ACCESS
+# )
+
+ServiceHttpFactory.registerErrorType(
+    AppErrors.EMPTY, NotFoundError, default_err_title=ErrorTitle.DATA_ACCESS
+)
+
+ServiceHttpFactory.registerErrorType(
+    AppErrors.INTERNAL, InternalError, ErrorTitle.UNKNOWN
+)
+
 # DTO2HttpFactory.registerErrorType(AppErrors., NotFoundError.create)
 
 
@@ -86,7 +113,7 @@ class ServiceDTO(BaseBinaryResult):
         if isinstance(self._value, ServiceResult):
             return self._value
         elif isinstance(self._value, GenericServiceException):
-            return DTO2HttpFactory.fromServiceToWeb(self)
+            return ServiceHttpFactory.fromServiceToWeb(self)
 
     def unwrap_or(self, _alternative):
         if isinstance(self._value, ServiceResult):
