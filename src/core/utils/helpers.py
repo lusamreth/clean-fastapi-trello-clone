@@ -1,7 +1,7 @@
 from datetime import datetime
 from functools import wraps
-from pydantic import BaseModel, ConfigDict
 
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.types import DateTime
 
 
