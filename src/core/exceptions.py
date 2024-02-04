@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, Optional
-from fastapi import status, Request
+
+from fastapi import Request, status
 from pydantic import BaseModel
 
 # from core.generics import AppErrors, GenericServiceException,ServiceDTO, ServiceResult, isLeft, isRight
@@ -56,7 +57,7 @@ class DuplicatedError(CoreException):
 
 class AuthError(CoreException):
     def injectStatusCode(self):
-        self.status_code = status.HTTP_403_FORBIDDEN
+        self.status_code = status.HTTP_401_UNAUTHORIZED
 
 
 class NotFoundError(CoreException):
