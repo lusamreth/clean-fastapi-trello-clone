@@ -23,7 +23,7 @@ def createLogPath():
     return logPath
 
 
-class TestLogger:
+class SystemLogger:
     logDir: str
     logHandlersConfig: dict
     logHandlers: list[str]
@@ -65,7 +65,7 @@ class TestLogger:
         timeFormat = "{}".format(
             loggedTime.isoformat(),
         )
-        filenameFormat = "{}/test-{}.log".format(
+        filenameFormat = "{}/run-{}.log".format(
             self.logDir,
             timeFormat,
         )
@@ -87,8 +87,9 @@ class TestLogger:
 
             if isinstance(_value, dict):
                 # strFormat += JSON.from_data(_value)
-                richText.append("[bold red] \n", style="bold magenta")
+                richText.append("[bold red] [JSON] \n", style="bold magenta")
                 jsonTxt = JSON.from_data(_value).text
+
                 richText.append_text(jsonTxt)
                 richText.append("\n")
                 richText.append("\n")
@@ -112,6 +113,7 @@ class TestLogger:
         # print("eventtt", event_dict, method_name, logger)
         record = event_dict["_record"]
         result = event_dict.get("result")
+
         if record is None:
             return event_dict
 
@@ -120,6 +122,7 @@ class TestLogger:
 
         event_dict["thread_name"] = record.threadName
         event_dict["process_name"] = record.processName
+        event_dict["method_name"] = method_name
 
         return event_dict
 
@@ -164,7 +167,6 @@ class TestLogger:
             "json": {
                 "()": structlog.stdlib.ProcessorFormatter,
                 "processors": [
-                    # self.extractFromEventRecord,
                     structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                     structlog.processors.JSONRenderer(sort_keys=True),
                 ],
@@ -197,3 +199,10 @@ class TestLogger:
     @classmethod
     def getLogger(cls, log_name, log_dir, level=logging.NOTSET):
         return cls(log_name, log_dir, level).rootLogger
+
+
+class HttpMiddlewareLogger:
+    def init(self):
+        pass
+
+    pass
