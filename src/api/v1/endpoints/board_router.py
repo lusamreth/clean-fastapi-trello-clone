@@ -1,14 +1,14 @@
-from collections.abc import Callable
-from typing import Annotated
+from fastapi import APIRouter, Depends
 
-from fastapi import APIRouter, Depends, Path, Query, Request, Response
-from fastapi.routing import APIRoute
-
-from api.v1.provider import bearerSec, getBoardService, getCabinetService
-from schemas.board import CreateBoardInput, FetchBoardBulks, PatchBoardInput
+from api.v1.provider import bearerSec, getBoardService
+from api.v1.resource.prefixes import RouterPrefix
+from schemas.board import CreateBoardInput, PatchBoardInput
 from services.board_services import BoardService
 
-boardRouter = APIRouter(tags=["Board"])
+from ..resource.tags import RouterTag
+
+boardRouter = APIRouter(tags=[RouterTag.BOARD])
+boardSharedRouter = APIRouter(tags=[RouterTag.BOARD])
 
 
 @boardRouter.post("/")
@@ -25,7 +25,8 @@ async def create_board(
     return result.unwrap()
 
 
-@boardRouter.get("/many")
+# boardRouter.prefix
+@boardSharedRouter.get("/{cabinet_id}" + RouterPrefix.BOARD)
 async def fetch_boards(
     cabinet_id: str,
     # fetchInfo: FetchBoardBulks,

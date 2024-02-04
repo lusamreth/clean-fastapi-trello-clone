@@ -1,23 +1,17 @@
-from collections.abc import Callable
-from fastapi import APIRouter, Depends, Path, Query, Response, Request
-from typing import Annotated
+from fastapi import APIRouter, Depends
 
-from fastapi.routing import APIRoute
-
-from api.v1.provider import getBoardService, getCardService, bearerSec
-
-from schemas.card import (
-    CreateCardInput,
-    PatchCardInput,
-)
-
+from api.v1.provider import getCardService
+from api.v1.resource.prefixes import RouterPrefix
+from schemas.card import CreateCardInput, PatchCardInput
 from services.card_services import CardService
 
+from ..resource.tags import RouterTag
 
-cardRouter = APIRouter(tags=["Card"])
+cardRouter = APIRouter(tags=[RouterTag.CARD])
+cardSharedRouter = APIRouter(tags=[RouterTag.CARD])
 
 
-@cardRouter.get("/many")
+@cardSharedRouter.get("/{board_id}" + RouterPrefix.CARD)
 def getAllCards(
     board_id: str,
     cardService: CardService = Depends(getCardService),

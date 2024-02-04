@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Header, Path, Query, Depends
+from fastapi import APIRouter, Depends, Header, Path, Query
 
+from api.v1.resource.tags import RouterTag
 from core.exceptions import AuthError, CoreException
+from core.security import JWTBearer
 from core.utils.exception_handler import exceptionHandler
 from services.user_services import UserService
-from ....schemas.user import LoginInfoInput, RegistrationInfoInput
-from core.security import JWTBearer
-from ..provider import getUserService, bearerSec
 
+from ....schemas.user import LoginInfoInput, RegistrationInfoInput
+from ..provider import bearerSec, getUserService
 
 # PRIMARY TASKS :
 # design api response model (based on jsonapi.org)
@@ -22,7 +23,7 @@ from ..provider import getUserService, bearerSec
 
 # from ....userServices.user_services import c
 
-userRouter = APIRouter(tags=["User"])
+userRouter = APIRouter(tags=[RouterTag.USER])
 
 
 @exceptionHandler([CoreException, AuthError])

@@ -1,22 +1,21 @@
-from collections.abc import Callable
-from typing import Annotated
-
 from fastapi import APIRouter, Depends
-from fastapi.routing import APIRoute
 
 from api.v1.provider import bearerSec, getTodoService
+from api.v1.resource.prefixes import RouterPrefix
+from api.v1.resource.tags import RouterTag
 from schemas.todo import CreateTodoInput, PatchTodoInput
 from services.todo_services import TodoService
 
-todoRouter = APIRouter(tags=["Todo"])
+todoRouter = APIRouter(tags=[RouterTag.TODO])
+todoSharedRouter = APIRouter(tags=[RouterTag.TODO])
 
 
-@todoRouter.get("/{card_id}")
+@todoSharedRouter.get("/{card_id}" + RouterPrefix.TODO)
 def getAllTodos(
-    board_id: str,
+    card_id: str,
     todoService: TodoService = Depends(getTodoService),
 ):
-    return todoService.getAllTodos(board_id).unwrap()
+    return todoService.getAllTodos(card_id).unwrap()
 
 
 @todoRouter.post("/")

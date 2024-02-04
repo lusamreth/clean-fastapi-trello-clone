@@ -1,14 +1,12 @@
 from collections.abc import Callable
-from fastapi import APIRouter, Depends, Path, Query, Response, Request
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 from fastapi.routing import APIRoute
 
-from api.v1.provider import getCabinetService, bearerSec
-
+from api.v1.provider import bearerSec, getCabinetService
 from schemas.cabinet import CreateCabinet, CreateCabinetInput, PatchCabinetInput
 from services.cabinet_services import CabinetService
-
 
 cabinetRouter = APIRouter(tags=["Cabinet"])
 
@@ -27,7 +25,7 @@ async def create_cabinet(
     return result.unwrap()
 
 
-@cabinetRouter.get("/many")
+@cabinetRouter.get("/")
 async def fetch_cabinets(
     token=Depends(bearerSec),
     cabService: CabinetService = Depends(getCabinetService),
@@ -57,8 +55,3 @@ async def update_cabinet(
 ):
     result = cabService.updateCabinet(cabinet_id, detail)
     return result.unwrap()
-
-
-@cabinetRouter.get("/lists")
-def main():
-    pass
