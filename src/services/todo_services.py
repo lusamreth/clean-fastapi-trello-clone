@@ -1,15 +1,15 @@
-from core.generics import err, ok, runDomainService, AppErrors
+from core.generics import AppErrors, err, ok, runDomainService
 from domains.todo import Todo
-from repository.protocols.todo_repo_meta import TodoRepo
+from repository.adapters.base_sql_repo import LazyResult
 from repository.protocols.card_repo_meta import CardRepo
-
+from repository.protocols.todo_repo_meta import TodoRepo
 from schemas.todo import (
-    TodoResult,
     CreateTodoInput,
     FetchTodoResult,
     PatchTodoInput,
     PatchTodoOutput,
     RemoveTodoOutput,
+    TodoResult,
 )
 
 
@@ -26,13 +26,37 @@ class TodoService:
         self.cardRepo = cardRepo
 
     def getAllTodos(self, todoId: str):
-        todos = self.cardRepo.get(todoId, lazy_options={"queryField": "todos"})
-        if todos is None:
+        todoLazyResult = self.cardRepo.get(
+            todoId,
+            lazy_options={
+                "query": {
+                    "field": "todos",
+                    "select": {
+                        "field": "tasks",
+                        "mapFn": lambda tasks: list(
+                            map(lambda task: task.task_id, tasks)
+                        ),
+                    },
+                }
+            },
+        )
+
+        if todoLazyResult is None:
             return err(printNotFoundMsg("Board", todoId), AppErrors.EMPTY)
 
-        convertor = lambda todo: self.repo.db_to_entity(todo)
-        todoList = list(map(convertor, todos))
-        return ok(FetchTodoResult(cardList=todoList))
+        if not isinstance(todoLazyResult, LazyResult):
+            return err("Board repo yeild incorrect lazy result", AppErrors.INTERNAL)
+
+        def convertor(todo_tuple):
+            index, todo = todo_tuple
+            entity = self.repo.db_to_entity(todo, todoLazyResult.selected[index])
+            if entity is None:
+                return err(printNotFoundMsg("Todo", todoId), AppErrors.EMPTY)
+            return TodoResult(**entity.model_dump())
+
+        # convertor = lambda todo: self.repo.db_to_entity(todo,convertor)
+        todoList = list(map(convertor, enumerate(todoLazyResult.data)))
+        return ok(FetchTodoResult(todos=todoList))
 
     # please implement lazy loading retrieval with the lazy = True option
     # in the base repo, because otherwise you will a problems loading
@@ -44,7 +68,7 @@ class TodoService:
             return err(printNotFoundMsg("Board", todoId), AppErrors.EMPTY)
 
         domainData = Todo.create(name=todo_data.name, description=todo_data.content)
-        _result = self.repo.add(**self.repo.entity_to_db(todoId, domainData, True))
+        self.repo.add(**self.repo.entity_to_db(todoId, domainData, True))
         return ok(TodoResult(**domainData.model_dump()))
 
     def patchTodo(self, todoId: str, todo_data: PatchTodoInput):
