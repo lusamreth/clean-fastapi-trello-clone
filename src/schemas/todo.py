@@ -12,7 +12,7 @@ class CreateTodoInput(BaseModel):
 
 
 class FetchTodoInput(BaseModel):
-    card_id: str
+    todo_id: str
 
 
 class TodoResult(Todo):
@@ -20,7 +20,7 @@ class TodoResult(Todo):
 
 
 class FetchTodoResult(BaseModel):
-    cardList: list[TodoResult]
+    todos: list[TodoResult]
 
 
 class PatchTodoInput(TodoPatcher):
