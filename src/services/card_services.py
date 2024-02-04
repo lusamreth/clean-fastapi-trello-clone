@@ -1,8 +1,10 @@
-from core.generics import ServiceDTO, err, ok, runDomainService, AppErrors
-from domains.card import Card
-from repository.protocols.card_repo_meta import CardRepo
-from repository.protocols.board_repo_meta import BoardRepo
+from sqlalchemy.orm.loading import instances
 
+from core.generics import AppErrors, ServiceDTO, err, ok, runDomainService
+from domains.card import Card
+from repository.adapters.base_sql_repo import LazyResult
+from repository.protocols.board_repo_meta import BoardRepo
+from repository.protocols.card_repo_meta import CardRepo
 from schemas.card import (
     CardResult,
     CreateCardInput,
@@ -26,12 +28,37 @@ class CardService:
         self.boardRepo = boardRepo
 
     def getAllCards(self, boardId: str):
-        cards = self.boardRepo.get(boardId, lazy_options={"queryField": "cards"})
-        if cards is None:
+        cardsLazyResult = self.boardRepo.get(
+            boardId,
+            lazy_options={
+                "query": {
+                    "field": "cards",
+                    "select": {
+                        "mapFn": lambda todos: list(
+                            map(lambda todo: todo.todo_id, todos)
+                        ),
+                        "field": "todos",
+                    },
+                }
+            },
+        )
+
+        if cardsLazyResult is None:
             return err(printNotFoundMsg("Board", boardId), AppErrors.EMPTY)
 
-        convertor = lambda card: self.repo.db_to_entity(card)
-        cardList = list(map(convertor, cards))
+        if not isinstance(cardsLazyResult, LazyResult):
+            return err(printNotFoundMsg("Board", boardId), AppErrors.EMPTY)
+
+        def convertor(card_tuple):
+            index, card = card_tuple
+            entity = self.repo.db_to_entity(card, cardsLazyResult.selected[index])
+            if entity is None:
+                return err(printNotFoundMsg("Card", card.id), AppErrors.EMPTY)
+
+            return CardResult(**entity.model_dump())
+
+        # convertor = lambda card:
+        cardList = list(map(convertor, enumerate(cardsLazyResult.data)))
         return ok(FetchCardResult(cards=cardList))
 
     # please implement lazy loading retrieval with the lazy = True option
