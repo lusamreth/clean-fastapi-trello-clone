@@ -36,14 +36,17 @@ HOSTURL = "http://{}:{}".format("0.0.0.0", "8000")
 API_VERSION = "v1"
 
 
-def getResource(tag, resource=""):
-    return "{}/{}/{}".format(HOSTURL, tag, resource)
+def getResource(tag, resource=None):
+    if resource is not None:
+        return "{}/{}/{}".format(HOSTURL, tag, resource)
+    else:
+        return "{}/{}".format(HOSTURL, tag)
 
 
 def serialize(json_payload: dict) -> ServiceResult:
     _cond1 = json_payload.get("data") is not None
     _cond2 = json_payload.get("message") is not None
-    rootLogger.info("json payload ", payload=json_payload, extra={"markup": True})
+    # rootLogger.info("json payload ", payload=json_payload)
 
     if _cond1 and _cond2:
         return ServiceResult(**json_payload)
@@ -51,16 +54,47 @@ def serialize(json_payload: dict) -> ServiceResult:
         raise Exception("Bump Into error while serializing")
 
 
-def makeAuthorizeRequest(access_token: str):
-    def authorizeRequest(method, url, data=None, **kwargs) -> ServiceResult:
+def makeAuthorizeServiceRequest(access_token: str):
+    def authorizeRequest(
+        method, url, data=None, params: dict = {}, **kwargs
+    ) -> ServiceResult:
         _raw = rq.request(
             method=method,
             url=url,
             headers={"Authorization": "Bearer {}".format(access_token)},
             data=data,
-            **kwargs
+            params=params,
+            **kwargs,
+        )
+
+        # for some reason the request is created twice
+        # intercept the status code to block this behavoir
+
+        if _raw.status_code == 405:
+            return ServiceResult(
+                message="Method Not allowed", data={"type": "Not allowed"}
+            )
+
+        if _raw.status_code == 500:
+            raise Exception(_raw.status_code)
+
+        return serialize(_raw.json())
+
+    return authorizeRequest
+
+
+def makeAuthorizeRequest(access_token: str):
+    def authorizeRequest(
+        method, url, data=None, params: dict = {}, **kwargs
+    ) -> ServiceResult:
+        return rq.request(
+            method=method,
+            url=url,
+            headers={"Authorization": "Bearer {}".format(access_token)},
+            data=data,
+            params=params,
+            **kwargs,
         ).json()
-        return serialize(_raw)
 
     return authorizeRequest
 
@@ -77,17 +111,18 @@ def authProcess() -> ServiceResult:
     )
 
     jj = registration_res.json()
-    if jj.get("status") is None or jj.get("status") == 403:
+    if jj.get("status") is None or jj.get("status") == 401:
         rootLogger.info("Already login!")
         rootLogger.info("Proceeding authentication...")
 
         login_res = rq.post(
-            getResource("user", "login"),
+            getResource("users", "login"),
             data=LoginInfoInput(
                 email="test@gmail.com",
                 password="test@123456789",
             ).model_dump_json(),
         )
+
         rootLogger.info("login response ", result=login_res.json())
         return serialize(login_res.json())
     else:
@@ -101,25 +136,60 @@ class ChainCall:
         self.prevContext = []
 
     def tail(self, fieldname: str, level=-1) -> str:
-        # print(self.prevContext[len(self.prevContext) - 1][fieldname])
+        print(self.prevContext)
+        print(self.prevContext[len(self.prevContext) - 1][fieldname])
+
         return self.prevContext[len(self.prevContext) - 1][fieldname]
 
+    def extractPrimaryKey(self, queryStr: dict) -> str | None:
+        for k in queryStr.keys():
+            splt = k.split("_")
+
+            if len(splt) == 2:
+                val = queryStr[k]
+                if splt[1] == "id":
+                    return val
+
+    # return self.
+
     def createIfEmpty(self, name, data, queryStr={}):
+        rootLogger.info("LOGGED name {} {}".format(name, getResource(name)))
+        singularName = name[:-1]
+        identifier = singularName + "_" + "id"
+
+        pk = (
+            self.extractPrimaryKey(queryStr)
+            if queryStr.get("isPrimaryKey") is True
+            else None
+        )
+
+        RESOURCE_URL = getResource(name)
+
+        if pk is not None:
+            print("pKK", pk, identifier, queryStr)
+            parentPlural = queryStr.get("parent") + "s"
+            RESOURCE_URL = getResource(
+                parentPlural,
+                pk + "/" + name,
+            )
+
         try:
-            result = self.authReq("get", getResource(name, "many"), params=queryStr)
+            result = self.authReq("get", RESOURCE_URL)
         except Exception as e:
             rootLogger.error(str(e))
             exit(1)
+
+        if result.data.get("type") is "Not allowed":
+            return self
 
         if len(self.states) != 0:
             prev = self.states[-1]
             if prev is False:
                 rootLogger.exception("Found failure! Cannot continue")
 
-        pluralName = "{}s".format(name)
         rootLogger.info("fetch result of entity {} ".format(name), result=result)
-
-        manyRes = result.data[pluralName]
+        print(result)
+        manyRes = result.data[name]
         if len(manyRes) == 0:
             postRes = self.authReq("post", getResource(name), data)
             self.prevContext.append(postRes.data)
@@ -135,29 +205,51 @@ class ChainCall:
 def main():
     aRes = authProcess()
     aToken = aRes.data["accessToken"] if authProcess is not None else ""
-    authReq = makeAuthorizeRequest(access_token=str(aToken))
+    authReq = makeAuthorizeServiceRequest(access_token=str(aToken))
+
     chainCaller = ChainCall(authReq)
     chainCaller.createIfEmpty(
-        "cabinet",
+        "cabinets",
         CreateCabinetInput(name="test", description="test").model_dump_json(),
     ).createIfEmpty(
-        "board",
+        "boards",
         CreateBoardInput(
             cabinetId=chainCaller.tail("cabinetId"),
             name="test2",
             description="test2",
             topic="random",
         ).model_dump_json(),
-        {"cabinet_id": chainCaller.tail("cabinetId")},
+        {
+            "cabinet_id": chainCaller.tail("cabinetId"),
+            "isPrimaryKey": True,
+            "parent": "cabinet",
+        },
     ).createIfEmpty(
-        "card",
+        "cards",
         CreateCardInput(
             boardId=chainCaller.tail("boardId"),
             title="test2",
             content="test2",
         ).model_dump_json(),
-        {"board_id": chainCaller.tail("boardId")},
+        {
+            "board_id": chainCaller.tail("boardId"),
+            "isPrimaryKey": True,
+            "parent": "board",
+        },
+    ).createIfEmpty(
+        "todos",
+        CreateTodoInput(
+            cardId=chainCaller.tail("cardId"),
+            name="test2",
+            content="test2",
+        ).model_dump_json(),
+        {
+            "card_id": chainCaller.tail("cardId"),
+            "isPrimaryKey": True,
+            "parent": "card",
+        },
     )
+    rootLogger.info("Parent daisy chaining test ran successfully!")
 
 
 if __name__ == "__main__":
