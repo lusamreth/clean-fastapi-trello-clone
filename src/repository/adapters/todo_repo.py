@@ -1,6 +1,7 @@
-from core.utils.helpers import unwrapDBTimeSet
+from core.utils.helpers import unwrapDBTimeSet, unwrapEntityTimeSet
 from domains.todo import Todo, TodoPatcher
 from repository.model.todo import TodoSchema
+
 from ..adapters.base_sql_repo import BaseRepo
 from ..protocols.todo_repo_meta import TodoRepo
 
@@ -14,17 +15,21 @@ class TodoRepoImpl(BaseRepo[TodoSchema], TodoRepo):
         )
 
     def db_to_entity(
-        self, db_model: TodoSchema | None, to_dict: bool = True
+        self,
+        db_model: TodoSchema | None,
+        taskRefs: list[str] = [],
+        to_dict: bool = False,
     ) -> Todo | dict | None:
         # def dbmTodoConvertor(todo: TodoSchema) -> Todo:
         #     pass
         if db_model is not None:
             dbm = db_model
             param = {
-                "cardId": dbm.card_id,
-                "description": dbm.title,
+                "todoId": dbm.card_id,
+                "name": dbm.name,
+                "description": "",
                 # todoRefs=dbm.todos,
-                "todoRefs": dbm.todos,
+                "taskRefs": taskRefs,
                 **unwrapDBTimeSet(dbm).model_dump(),
                 # "createdOn": float(dbm.created_on.timestamp()),
                 # "modifiedOn": float(dbm.modified_on.timestamp()),
@@ -40,10 +45,12 @@ class TodoRepoImpl(BaseRepo[TodoSchema], TodoRepo):
         if entity is not None:
             param = {
                 "todo_id": entity.todoId,
-                "todos": entity.taskRefs,
-                "description": entity.description,
-                "board_id": board_id,
-                **unwrapDBTimeSet(entity).model_dump(),
+                "tasks": entity.taskRefs,
+                "name": entity.name,
+                # "content": entity.description,
+                # "description": entity.description,
+                "card_id": board_id,
+                **unwrapEntityTimeSet(entity).model_dump(),
             }
 
             if to_dict:

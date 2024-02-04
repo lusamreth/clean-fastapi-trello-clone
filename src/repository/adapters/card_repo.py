@@ -17,8 +17,8 @@ class CardRepoImpl(BaseRepo[CardSchema], CardRepo):
     def db_to_entity(
         self,
         db_model: CardSchema | None,
-        to_dict: bool = True,
         todoRefs: list | None = [],
+        to_dict: bool = False,
     ) -> Card | dict | None:
         # def dbmTodoConvertor(todo: TodoSchema) -> Todo:
         #     pass
@@ -27,7 +27,7 @@ class CardRepoImpl(BaseRepo[CardSchema], CardRepo):
             param = {
                 "cardId": dbm.card_id,
                 "title": dbm.title,
-                "description": dbm.title,
+                "description": dbm.description,
                 "todoRefs": todoRefs,
                 # "createdOn": float(dbm.created_on.timestamp()),
                 **unwrapDBTimeSet(dbm).model_dump(),

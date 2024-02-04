@@ -1,13 +1,14 @@
 from collections.abc import Callable
 from contextlib import AbstractContextManager
-from core.utils.helpers import unwrapDBTimeSet, unwrapEntityTimeSet
 
 from sqlalchemy.orm import Session
 
-from repository.model.cabinet import BoardSchema
-from ..protocols.board_repo_meta import BoardRepo
-from ..adapters.base_sql_repo import BaseRepo
+from core.utils.helpers import unwrapDBTimeSet, unwrapEntityTimeSet
 from domains.board import Board
+from repository.model.cabinet import BoardSchema
+
+from ..adapters.base_sql_repo import BaseRepo
+from ..protocols.board_repo_meta import BoardRepo
 
 
 class BoardRepoImpl(BaseRepo[BoardSchema], BoardRepo):
@@ -21,9 +22,7 @@ class BoardRepoImpl(BaseRepo[BoardSchema], BoardRepo):
             primary_key_identifier="board_id",
         )
 
-    def db_to_entity(
-        self, board_repo_data: BoardSchema | None, cardRefs: list | None = []
-    ):
+    def db_to_entity(self, board_repo_data: BoardSchema | None, cardRefs: list = []):
         bd = board_repo_data
         if bd is not None:
             return Board(
