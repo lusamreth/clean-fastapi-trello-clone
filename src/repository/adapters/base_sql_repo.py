@@ -1,8 +1,11 @@
 from contextlib import AbstractContextManager
-from sqlalchemy.orm import DeclarativeBase, Session
-from sqlalchemy.exc import IntegrityError
-from core.base_repo import BaseRepository
 from typing import Callable, Generic, TypeVar
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import DeclarativeBase, Session
+from typing_extensions import Any
+
+from core.base_repo import BaseRepository
 
 T = TypeVar("T")
 
@@ -18,6 +21,15 @@ class LazyOption:
     def __init__(self, queryField, lazy_type="select"):
         self.queryField = queryField
         self.lazy_type = lazy_type
+
+
+class LazyResult(Generic[T]):
+    data: list[T]
+    selected: Any
+
+    def __init__(self, data, selected=None):
+        self.data = data
+        self.selected = selected
 
 
 class BaseRepo(BaseRepository[T]):
@@ -62,7 +74,9 @@ class BaseRepo(BaseRepository[T]):
             session.commit()
             return update_status
 
-    def get(self, id: str, lazy_options: dict | None = None) -> T | None:
+    def get(
+        self, id: str, lazy_options: dict | None = None
+    ) -> T | LazyResult | list[T] | None:
         with self.session_factory() as session:
             if lazy_options:
                 res = (
@@ -70,8 +84,46 @@ class BaseRepo(BaseRepository[T]):
                     .filter(self.model.__dict__[self.identifier] == id)
                     .first()
                 )
+
                 if res is not None:
-                    return res.__getattribute__(lazy_options["queryField"])
+                    isQuery = lazy_options.get("query")
+                    selector = (
+                        lazy_options.get("queryField")
+                        if isQuery is None
+                        else isQuery.get("field")
+                    )
+                    queryList = res.__getattribute__(selector)
+
+                    if isQuery is not None:
+                        mapProp = isQuery.get("select")
+
+                        mapKey = mapProp["field"]
+                        mapFn = mapProp.get("mapFn")
+
+                        if mapFn is not None:
+
+                            def mapper(qRes) -> T:
+                                val = qRes.__getattribute__(mapKey)
+                                return mapFn(val)
+
+                            mapped = map(
+                                lambda queryResult: mapper(queryResult), queryList
+                            )
+                            return LazyResult(data=queryList, selected=list(mapped))
+
+                        return LazyResult(
+                            data=queryList,
+                            selected=list(
+                                map(lambda qRes: qRes.getattribute(mapKey), queryList)
+                            ),
+                        )
+                        # return LazyResult()
+                        # return list(mapped)
+
+                    # if lazy_options["queryField"] == "boards":
+                    #     print("QQ LIST", queryList, queryList[0].cards)
+
+                    return queryList
             else:
                 res = (
                     session.query(self.model)
