@@ -1,24 +1,32 @@
 from fastapi import FastAPI
-from .endpoints.cabinet_route import cabinetRouter
-from .endpoints.user_route import userRouter
+
 from .endpoints.auth_router import authRouter
-from .endpoints.board_router import boardRouter
-from .endpoints.card_router import cardRouter
-from .endpoints.todo_router import todoRouter
+from .endpoints.board_router import boardRouter, boardSharedRouter
+from .endpoints.cabinet_route import cabinetRouter
+from .endpoints.card_router import cardRouter, cardSharedRouter
+from .endpoints.todo_router import todoRouter, todoSharedRouter
+from .endpoints.user_route import userRouter
+from .resource.prefixes import RouterPrefix
 
-
-authPrefix = "/auth"
-userPrefix = "/user"
-cabinetPrefix = "/cabinet"
-boardPrefix = "/board"
-cardPrefix = "/card"
-todoPrefix = "/todo"
+# authPrefix = "/auth"
+# userPrefix = "/users"
+# cabinetPrefix = "/cabinets"
+# boardPrefix = "/boards"
+# cardPrefix = "/cards"
+# todoPrefix = "/todos"
 
 
 def initializeRouter(app: FastAPI):
-    app.include_router(userRouter, prefix=userPrefix)
-    app.include_router(cabinetRouter, prefix=cabinetPrefix)
-    app.include_router(authRouter, prefix=authPrefix)
-    app.include_router(boardRouter, prefix=boardPrefix)
-    app.include_router(cardRouter, prefix=cardPrefix)
-    app.include_router(todoRouter, prefix=todoPrefix)
+    app.include_router(userRouter, prefix=RouterPrefix.USER)
+    app.include_router(authRouter, prefix=RouterPrefix.AUTH)
+
+    app.include_router(cabinetRouter, prefix=RouterPrefix.CABINET)
+    app.include_router(boardSharedRouter, prefix=RouterPrefix.CABINET)
+
+    app.include_router(boardRouter, prefix=RouterPrefix.BOARD)
+    app.include_router(cardSharedRouter, prefix=RouterPrefix.BOARD)
+
+    app.include_router(cardRouter, prefix=RouterPrefix.CARD)
+    app.include_router(todoSharedRouter, prefix=RouterPrefix.CARD)
+
+    app.include_router(todoRouter, prefix=RouterPrefix.TODO)
