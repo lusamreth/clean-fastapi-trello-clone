@@ -10,4 +10,4 @@ mkdir /run/mysqld
 chmod 777 /run/mysqld
 
 
-
+mariadbd
