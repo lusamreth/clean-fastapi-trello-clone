@@ -15,26 +15,34 @@ becoming much more complex. Furthermore as more and more people get invovled, th
 Developer expected to upgrade their software with the latest and greatest features all the time and that can overwhelmed codebase and make it difficult to maintain If
 things aren't built in a modular fashion.
 
+### Existings ideas
+
 Which is why I started looking at options to tackle this problem by exploring various standardization and guidelines (also known as architecure) of structuring
 and bumps across various thoughts and ideas such as :
+
 - clean architecture
 - hexagonal architecture
 - vertical slicing
 - Onion/layer archiecture
 - n-tiers architecture
 
+### Disclamers
 This is one of the architectures that I am currently exploring and started working on the implementation parts to test out the theory as well as my overall understanding of the concepts.
-Althought as a disclamers, I might not followed all the rules down to the granular details , the essence of theory is still there. Ultimately speaking, the most important goal of the
-architecture is to establish a clear seperation of concerns in the codebase.
+Althought as a disclamers, some parts of the theory may got implemented , the essence of theory should be there. Ultimately speaking, the most important goal of the architecture is to
+establish a clear seperation of concerns in the codebase.
 
 
 ## Description
 
 _Example Application Interface using FastAPI framework in Python 3_
 
-This simple trello clone is a showcase of clean architecture implementation comprising of fastapi as the main http framework , sqlalchemy as the ORM and pydantic as the data model validator.
-Clean architecture aims to improve the maintainability and extensibility of the software by maintaining one important goal which is clear seperation of concerns. To achieve such objective , the
-codebase is divised into multiple layers that each handle different responsiblity.
+This simple trello clone is a showcase of clean architecture implementation comprising of serveral libraries such as :
+- fastapi as the main framework for building api
+- sqlalchemy as the ORM
+- pydantic as the type validator
+
+Clean architecture aims to improve the maintainability and extensibility of the software by maintaining one important goal which is clear seperation of concerns. To achieve such objective ,
+the codebase is divised into multiple layers that each handle different responsiblity.
 
 ## Heriachy of layers
 
@@ -53,15 +61,71 @@ Some overview from the creator of the [Architecture](https://blog.cleancoder.com
 
 ## Installation process
 
+### poetry install
+The project use poetry as a package manager.
+To install the dependencies use the following command:
+
+"""bash
+poetry install
+"""
+
+### running locally
+
+#### starting database
+There is a scripts for spinning up the local sql instance however this require roots permission. If you have mariadbd running already no need to run this script.
+"""bash
+doas bash mariadbd-manual-start.sh
+"""
+
+#### running the app
+Poetry script for running the server :
+"""bash
+poetry run start
+"""
+
+#### Testings
+There are currently multiple test squite
+- Unit tests for core
+- Unit tests for repositories interfaces
+- Unit tests for each route responses
+- Live testings
+
+Poetry script for running test suite:
+
+All unit tests
+"""bash
+poetry run test
+"""
+Live testing (**Require live running server to test**)
+live testing would test a bunch of essentials route
+
+
+[Note]:
+
 _to be continued_
+
 
 ## Demoing
 
 _to be continued_
 
+## Downfall
+
+## Testing
+
 ## Acknowledgements
 
+Special thanks to serveral projects for inspiration and providing the detailed example to lay foundation for this project
+- [Comments-api](https://github.com/dev-mastery/comments-api) by dev-mastery
+- [Fastapi-layered-archiecture](https://github.com/teamhide/fastapi-layered-architecture)
+- [Fastapi-cleaned-archiecture](https://github.com/jujumilk3/fastapi-clean-architecture)
+- [Mobile app validation project](https://github.com/raheemadamboev/clean-architecture-validation)
 _to be continued_
+
+## References:
+(Reference point)[https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html]
+(Awesome project showcase by dev-mastery)[https://www.youtube.com/watch?v=CnailTcJV_U]
+(CA is about vertical slicing)[https://www.youtube.com/watch?v=7ZXW_oWdTk4]
 
 ## License
 
